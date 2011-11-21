@@ -34,6 +34,15 @@ public final class Constants {
      * {@link com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource}.
      */
     public static final String SERIALIZATION_ALIAS_EXTERNAL_RESOURCE = "external-resource";
+    /**
+     * Separator for string device selection.
+     */
+    public static final String STRING_DEVICE_SELECTION_SEPARATOR = ".";
+    /**
+     * Separator for string device selection with escape.
+     */
+    public static final String STRING_DEVICE_SELECTION_SEPARATOR_WITH_ESCAPE = "\\.";
+
 
     /**
      * Id attribute in a JSON object.
