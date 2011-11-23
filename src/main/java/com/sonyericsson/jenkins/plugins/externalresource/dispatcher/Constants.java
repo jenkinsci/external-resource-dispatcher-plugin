@@ -36,6 +36,11 @@ public final class Constants {
     public static final String SERIALIZATION_ALIAS_EXTERNAL_RESOURCE = "external-resource";
 
     /**
+     * Id attribute in a JSON object.
+     */
+    public static final String JSON_ATTR_ID = "id";
+
+    /**
      * Utility Constructor.
      */
     private Constants() {

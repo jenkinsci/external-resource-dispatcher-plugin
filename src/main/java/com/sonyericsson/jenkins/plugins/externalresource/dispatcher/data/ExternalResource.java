@@ -24,16 +24,33 @@
 package com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data;
 
 import com.sonyericsson.hudson.plugins.metadata.model.JsonUtils;
+import com.sonyericsson.hudson.plugins.metadata.model.MetadataNodeProperty;
+import com.sonyericsson.hudson.plugins.metadata.model.values.AbstractMetadataValue;
 import com.sonyericsson.hudson.plugins.metadata.model.values.MetadataValue;
 import com.sonyericsson.hudson.plugins.metadata.model.values.TreeNodeMetadataValue;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Constants;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Messages;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import hudson.Extension;
+import hudson.ExtensionList;
+import hudson.model.Descriptor;
+import hudson.model.Hudson;
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.StaplerRequest;
 
+import java.util.LinkedList;
 import java.util.List;
+
+import static com.sonyericsson.hudson.plugins.metadata.Constants.REQUEST_ATTR_METADATA_CONTAINER;
+import static com.sonyericsson.hudson.plugins.metadata.model.JsonUtils.CHILDREN;
+import static com.sonyericsson.hudson.plugins.metadata.model.JsonUtils.DESCRIPTION;
+import static com.sonyericsson.hudson.plugins.metadata.model.JsonUtils.EXPOSED;
+import static com.sonyericsson.hudson.plugins.metadata.model.JsonUtils.GENERATED;
+import static com.sonyericsson.hudson.plugins.metadata.model.JsonUtils.NAME;
+import static com.sonyericsson.hudson.plugins.metadata.model.JsonUtils.checkRequiredJsonAttribute;
+import static com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Constants.JSON_ATTR_ID;
 
 /**
  * Metadata type representing an external resource attached to a Node.
@@ -146,6 +163,11 @@ public class ExternalResource extends TreeNodeMetadataValue {
         this.locked = locked;
     }
 
+    @Override
+    public Descriptor<AbstractMetadataValue> getDescriptor() {
+        return Hudson.getInstance().getDescriptorByType(ExternalResourceDescriptor.class);
+    }
+
     /**
      * Descriptor for {@link ExternalResource} metadata type.
      */
@@ -158,8 +180,54 @@ public class ExternalResource extends TreeNodeMetadataValue {
 
         @Override
         public MetadataValue fromJson(JSONObject json) throws JsonUtils.ParseException {
-            //TODO Implement
-            return super.fromJson(json);
+            checkRequiredJsonAttribute(json, JSON_ATTR_ID);
+            checkRequiredJsonAttribute(json, NAME);
+            List<MetadataValue> children = new LinkedList<MetadataValue>();
+            if (json.has(CHILDREN)) {
+                JSONArray array = json.getJSONArray(CHILDREN);
+                for (int i = 0; i < array.size(); i++) {
+                    JSONObject obj = array.getJSONObject(i);
+                    children.add(JsonUtils.toValue(obj));
+                }
+            }
+            ExternalResource value = new ExternalResource(
+                    json.getString(NAME), json.optString(DESCRIPTION),
+                    json.getString(JSON_ATTR_ID), children);
+            if (json.has(EXPOSED)) {
+                value.setExposeToEnvironment(json.getBoolean(EXPOSED));
+            }
+            if (json.has(GENERATED)) {
+                value.setGenerated(json.getBoolean(GENERATED));
+            } else {
+                //TODO Decide if this is really what should be done.
+                value.setGenerated(true);
+            }
+            return value;
+
+        }
+
+        @Override
+        public boolean appliesTo(Descriptor containerDescriptor) {
+            return containerDescriptor instanceof MetadataNodeProperty.MetadataNodePropertyDescriptor;
+        }
+
+        @Override
+        public List<AbstractMetaDataValueDescriptor> getValueDescriptors(StaplerRequest request) {
+            Object containerObj = request.getAttribute(REQUEST_ATTR_METADATA_CONTAINER);
+            request.setAttribute(REQUEST_ATTR_METADATA_CONTAINER, this);
+            Descriptor container = null;
+            if ((containerObj != null) && containerObj instanceof Descriptor) {
+                container = (Descriptor)containerObj;
+            }
+            List<AbstractMetaDataValueDescriptor> list = new LinkedList<AbstractMetaDataValueDescriptor>();
+            ExtensionList<AbstractMetaDataValueDescriptor> extensionList =
+                    Hudson.getInstance().getExtensionList(AbstractMetaDataValueDescriptor.class);
+            for (AbstractMetaDataValueDescriptor d : extensionList) {
+                if (!(d instanceof ExternalResourceDescriptor) && d.appliesTo(container) && d.appliesTo(this)) {
+                    list.add(d);
+                }
+            }
+            return list;
         }
 
         @Override

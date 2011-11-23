@@ -114,6 +114,17 @@
                     <includeTestSourceDirectory>true</includeTestSourceDirectory>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <xmlOutput>true</xmlOutput>
+                    <htmlOutput>true</htmlOutput>
+                    <!-- Optional derectory to put findbugs xdoc xml report -->
+                    <!--<xmlOutputDirectory>target/site</xmlOutputDirectory>-->
+                </configuration>
+            </plugin>
         </plugins>
         <extensions>
             <extension>
@@ -151,9 +162,10 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>findbugs-maven-plugin</artifactId>
-                <version>2.1</version>
+                <version>2.3.2</version>
                 <configuration>
                     <xmlOutput>true</xmlOutput>
+                    <htmlOutput>true</htmlOutput>
                     <!-- Optional derectory to put findbugs xdoc xml report -->
                     <!--<xmlOutputDirectory>target/site</xmlOutputDirectory>-->
                 </configuration>

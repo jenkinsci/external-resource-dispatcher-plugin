@@ -23,8 +23,11 @@
  */
 package com.sonyericsson.jenkins.plugins.externalresource.dispatcher;
 
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
 import hudson.Plugin;
 import hudson.model.Hudson;
+import hudson.model.Items;
+import hudson.model.Run;
 import hudson.model.Descriptor.FormException;
 import java.io.IOException;
 import javax.servlet.ServletException;
@@ -56,7 +59,20 @@ public class PluginImpl extends Plugin {
      */
     @Override
     public void start() throws Exception {
+        registerXStreamAlias();
         load();
+    }
+
+    /**
+     * XStream registrations.
+     */
+    private void registerXStreamAlias() {
+        Class[] types = {
+                ExternalResource.class, };
+        //Register it in all known XStreams just to be sure.
+        Hudson.XSTREAM.processAnnotations(types);
+        Items.XSTREAM.processAnnotations(types);
+        Run.XSTREAM.processAnnotations(types);
     }
 
   /**
