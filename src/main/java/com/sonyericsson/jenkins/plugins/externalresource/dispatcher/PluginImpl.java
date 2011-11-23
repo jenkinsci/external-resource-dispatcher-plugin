@@ -24,6 +24,12 @@
 package com.sonyericsson.jenkins.plugins.externalresource.dispatcher;
 
 import hudson.Plugin;
+import hudson.model.Hudson;
+import hudson.model.Descriptor.FormException;
+import java.io.IOException;
+import javax.servlet.ServletException;
+import net.sf.json.JSONObject;
+import org.kohsuke.stapler.StaplerRequest;
 
 /**
  * Main plugin implementation.
@@ -31,4 +37,71 @@ import hudson.Plugin;
  * @author Robert Sandell &lt;robert.sandell@sonyericsson.com&gt;
  */
 public class PluginImpl extends Plugin {
+
+  /**
+     * Release Key, used by releaseAll().
+     */
+    private String releaseKey;
+
+  /**
+     * Empty constructor, method getInstance() brings the singleton instance.
+     */
+    public PluginImpl() {
+    }
+
+  /**
+     * Initializing configuration.
+     *
+     * @throws Exception an Exception.
+     */
+    @Override
+    public void start() throws Exception {
+        load();
+    }
+
+  /**
+     * This method is executed when the user clicks "Save"
+     * on the general configuration page, thus making the values available
+     * as global configuration settings from this singleton.
+     *
+     * @param req the StaplerRequest object
+     * @param formData the data sent by the page form as a JSONObject object
+     * @throws java.io.IOException an IOException.
+     * @throws ServletException a ServletException.
+     * @throws hudson.model.Descriptor.FormException a FormException.
+     */
+    @Override
+    public void configure(StaplerRequest req, JSONObject formData) throws IOException, ServletException, FormException {
+
+        // Setting from the fields in the general config page
+        releaseKey = formData.getString("releaseKey");
+
+        save();
+     }
+
+  /**
+     * Get this singleton when the user is going to configure the project.
+     * The singleton will first make available some global configuration values
+     * for the user, then it will be used to configure variables in the current project
+     * and pass values for the builder.
+     *
+     * @return the instance for this singleton.
+     */
+    public static PluginImpl getInstance() {
+        PluginImpl instance = Hudson.getInstance().getPlugin(PluginImpl.class);
+        if (instance == null) {
+            throw new IllegalStateException("Plugin is not loaded!");
+        }
+        return instance;
+    }
+
+  /**
+     * Retrieves the releaseKey field, containing the value of Release Key.
+     *
+     * @return the releaseKey.
+     */
+    public String getReleaseKey() {
+        return releaseKey;
+    }
+
 }
