@@ -23,13 +23,40 @@
   -->
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-    <tr>
+    <j:set var="style" value=""/>
+    <j:if test="${!it.enabled}">
+        <j:set var="style" value="font-style: italic; color: grey;"/>
+    </j:if>
+    <tr style="${style}">
         <th align="left" valign="top">
             <img src="${imagesURL}/16x16/computer.png" alt="" height="12" width="12"/>
             ${it.fullName}
+            <j:if test="${it.hasEnableDisablePermission()}">
+                <script>
+                    function disableOrEnable${it.id}() {
+                    var er${it.id} = <st:bind value="${it}"/>
+                    <j:choose>
+                        <j:when test="${it.enabled}">
+                            er${it.id}.doEnable(false, function(t) {
+                                window.location.reload();
+                            });
+                            <j:set var="buttonText" value="Disable"/>
+                        </j:when>
+                        <j:otherwise>
+                            er${it.id}.doEnable(true, function(t) {
+                                window.location.reload();
+                            });
+                            <j:set var="buttonText" value="Enable"/>
+                        </j:otherwise>
+                    </j:choose>
+                    }
+                </script>
+                <br/>
+                <button onClick="disableOrEnable${it.id}()">${buttonText}</button>
+            </j:if>
         </th>
         <td>
-            <table class="pane" width="100%">
+            <table class="pane" width="100%" style="${style}">
                 <tr>
                     <th width="15%" align="left">Id</th>
                     <td>${it.id}</td>

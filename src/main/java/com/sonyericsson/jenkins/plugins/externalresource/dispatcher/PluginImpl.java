@@ -25,14 +25,18 @@ package com.sonyericsson.jenkins.plugins.externalresource.dispatcher;
 
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
 import hudson.Plugin;
+import hudson.model.Computer;
+import hudson.model.Descriptor.FormException;
 import hudson.model.Hudson;
 import hudson.model.Items;
 import hudson.model.Run;
-import hudson.model.Descriptor.FormException;
-import java.io.IOException;
-import javax.servlet.ServletException;
+import hudson.security.Permission;
+import hudson.security.PermissionGroup;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.StaplerRequest;
+
+import javax.servlet.ServletException;
+import java.io.IOException;
 
 /**
  * Main plugin implementation.
@@ -41,18 +45,31 @@ import org.kohsuke.stapler.StaplerRequest;
  */
 public class PluginImpl extends Plugin {
 
-  /**
+    /**
+     * Permission group for  {@link ExternalResource} related operations.
+     */
+    public static final PermissionGroup GROUP = new PermissionGroup(
+            PluginImpl.class, Messages._ExternalResource_DisplayName());
+
+    /**
+     * Permission to enable or Disable an {@link ExternalResource}.
+     */
+    public static final Permission ENABLE_DISABLE_EXTERNAL_RESOURCE = new Permission(GROUP, "EnableDisable",
+            Messages._ExternalResource_EnableDisable(), Computer.CONFIGURE);
+
+    /**
      * Release Key, used by releaseAll().
      */
     private String releaseKey;
 
-  /**
+    /**
      * Empty constructor, method getInstance() brings the singleton instance.
      */
     public PluginImpl() {
+
     }
 
-  /**
+    /**
      * Initializing configuration.
      *
      * @throws Exception an Exception.
@@ -62,6 +79,7 @@ public class PluginImpl extends Plugin {
         registerXStreamAlias();
         load();
     }
+
 
     /**
      * XStream registrations.
@@ -75,16 +93,16 @@ public class PluginImpl extends Plugin {
         Run.XSTREAM.processAnnotations(types);
     }
 
-  /**
-     * This method is executed when the user clicks "Save"
-     * on the general configuration page, thus making the values available
-     * as global configuration settings from this singleton.
+    /**
+     * This method is executed when the user clicks "Save" on the general configuration page, thus making the values
+     * available as global configuration settings from this singleton.
      *
-     * @param req the StaplerRequest object
+     * @param req      the StaplerRequest object
      * @param formData the data sent by the page form as a JSONObject object
      * @throws java.io.IOException an IOException.
-     * @throws ServletException a ServletException.
-     * @throws hudson.model.Descriptor.FormException a FormException.
+     * @throws ServletException    a ServletException.
+     * @throws hudson.model.Descriptor.FormException
+     *                             a FormException.
      */
     @Override
     public void configure(StaplerRequest req, JSONObject formData) throws IOException, ServletException, FormException {
@@ -93,13 +111,12 @@ public class PluginImpl extends Plugin {
         releaseKey = formData.getString("releaseKey");
 
         save();
-     }
+    }
 
-  /**
-     * Get this singleton when the user is going to configure the project.
-     * The singleton will first make available some global configuration values
-     * for the user, then it will be used to configure variables in the current project
-     * and pass values for the builder.
+    /**
+     * Get this singleton when the user is going to configure the project. The singleton will first make available some
+     * global configuration values for the user, then it will be used to configure variables in the current project and
+     * pass values for the builder.
      *
      * @return the instance for this singleton.
      */
@@ -111,7 +128,7 @@ public class PluginImpl extends Plugin {
         return instance;
     }
 
-  /**
+    /**
      * Retrieves the releaseKey field, containing the value of Release Key.
      *
      * @return the releaseKey.

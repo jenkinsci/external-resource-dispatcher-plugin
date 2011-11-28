@@ -41,6 +41,17 @@ public final class Constants {
     public static final String JSON_ATTR_ID = "id";
 
     /**
+     * The root URL ror http commands relating to external resource.
+     */
+    public static final String EXTERNAL_RESOURCE_HTTP_COMMANDS_URL = "external-resource-httpcli";
+
+    /**
+     * The JSON attribute for
+     * {@link com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource#setEnabled(boolean)}.
+     */
+    public static final String JSON_ATTR_ENABLED = "enabled";
+
+    /**
      * Utility Constructor.
      */
     private Constants() {

@@ -23,8 +23,14 @@
  */
 package com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils;
 
+import com.sonyericsson.hudson.plugins.metadata.model.MetadataNodeProperty;
+import com.sonyericsson.hudson.plugins.metadata.model.MetadataParent;
+import com.sonyericsson.hudson.plugins.metadata.model.values.MetadataValue;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
+import hudson.model.Node;
+
 /**
- * Utility for singeling out available resources on a node.
+ * Utility for singling out available resources on a node.
  *
  * @author Robert Sandell &lt;robert.sandell@sonyericsson.com&gt;
  */
@@ -44,5 +50,52 @@ public final class AvailabilityFilter {
      * Default constructor.
      */
     private AvailabilityFilter() {
+    }
+
+    /**
+     * Finds the external resource attached to the node with the given id.
+     *
+     * @param node the node to search on.
+     * @param id   the id of the resource to find.
+     * @return the external resource if any.
+     */
+    public ExternalResource getExternalResourceById(Node node, String id) {
+        MetadataNodeProperty property = node.getNodeProperties().get(MetadataNodeProperty.class);
+        if (property != null) {
+            return getExternalResourceById(property, id);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Finds the external resource below the parent with the given id.
+     *
+     * @param parent the parent to search in.
+     * @param id     the id of the resource to find.
+     * @return the external resource if any.
+     */
+    public ExternalResource getExternalResourceById(MetadataParent<MetadataValue> parent, String id) {
+        if (parent instanceof ExternalResource) {
+            ExternalResource resource = (ExternalResource)parent;
+            if (resource.getId().equals(id)) {
+                return resource;
+            }
+        } else {
+            for (MetadataValue value : parent.getChildren()) {
+                if (value instanceof ExternalResource) {
+                    ExternalResource resource = (ExternalResource)value;
+                    if (resource.getId().equals(id)) {
+                        return resource;
+                    }
+                } else if (value instanceof MetadataParent) {
+                    ExternalResource resource = getExternalResourceById((MetadataParent<MetadataValue>)value, id);
+                    if (resource != null) {
+                        return resource;
+                    }
+                }
+            }
+        }
+        return null;
     }
 }

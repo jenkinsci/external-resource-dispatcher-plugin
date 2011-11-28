@@ -24,22 +24,29 @@
 package com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data;
 
 import com.sonyericsson.hudson.plugins.metadata.model.JsonUtils;
+import com.sonyericsson.hudson.plugins.metadata.model.MetadataContainer;
 import com.sonyericsson.hudson.plugins.metadata.model.MetadataNodeProperty;
+import com.sonyericsson.hudson.plugins.metadata.model.MetadataParent;
 import com.sonyericsson.hudson.plugins.metadata.model.values.AbstractMetadataValue;
 import com.sonyericsson.hudson.plugins.metadata.model.values.MetadataValue;
 import com.sonyericsson.hudson.plugins.metadata.model.values.TreeNodeMetadataValue;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Constants;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Messages;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.PluginImpl;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.model.Descriptor;
 import hudson.model.Hudson;
+import hudson.security.ACL;
+import hudson.security.Permission;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.bind.JavaScriptMethod;
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -63,6 +70,7 @@ public class ExternalResource extends TreeNodeMetadataValue {
     private String id;
     private StashInfo reserved;
     private StashInfo locked;
+    private boolean enabled = true;
 
     /**
      * Standard DataBound Constructor.
@@ -70,10 +78,26 @@ public class ExternalResource extends TreeNodeMetadataValue {
      * @param name        the name to identify it amongst its siblings.
      * @param description description
      * @param id          The unique ID of the resource
+     * @param enabled     if the device is enabled or not.
      * @param children    associated metadata.
      * @see TreeNodeMetadataValue#TreeNodeMetadataValue(String, String, java.util.List)
      */
     @DataBoundConstructor
+    public ExternalResource(String name, String description, String id, boolean enabled, List<MetadataValue> children) {
+        super(name, description, children);
+        this.id = id;
+        this.enabled = enabled;
+    }
+
+    /**
+     * Standard Constructor.
+     *
+     * @param name        the name to identify it amongst its siblings.
+     * @param description description
+     * @param id          The unique ID of the resource
+     * @param children    associated metadata.
+     * @see TreeNodeMetadataValue#TreeNodeMetadataValue(String, String, java.util.List)
+     */
     public ExternalResource(String name, String description, String id, List<MetadataValue> children) {
         super(name, description, children);
         this.id = id;
@@ -163,6 +187,97 @@ public class ExternalResource extends TreeNodeMetadataValue {
         this.locked = locked;
     }
 
+    /**
+     * If this resource is enabled (true) or disabled (false) on the node. A disabled resource won't be selected for
+     * reservation by the {@link com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.AvailabilityFilter}.
+     *
+     * @return enabled or not.
+     */
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    /**
+     * If this resource is enabled (true) or disabled (false) on the node. A disabled resource won't be selected for
+     * reservation by the {@link com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.AvailabilityFilter}.
+     * The idea is that instead of removing a resource when it is temporarily removed and potentially loosing all
+     * configuration, a monitoring service could just disable it instead. Intended for internal calls and serialization.
+     * For external "user calls" see {@link #doEnable(boolean)}.
+     *
+     * @param enabled enabled or not.
+     */
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    /**
+     * Enables this resource and save the Node's config. The method first checks if the user has the required
+     * permissions. Called from javascript and CLI.
+     *
+     * @param enable true to enable, false to disable.
+     * @throws IOException if so during save.
+     * @see PluginImpl#ENABLE_DISABLE_EXTERNAL_RESOURCE
+     * @see com.sonyericsson.hudson.plugins.metadata.model.MetadataContainer#save()
+     * @see #setEnabled(boolean)
+     */
+    @JavaScriptMethod
+    public synchronized void doEnable(boolean enable) throws IOException {
+        getACL().checkPermission(PluginImpl.ENABLE_DISABLE_EXTERNAL_RESOURCE);
+        setEnabled(enable);
+        getContainer().save();
+    }
+
+    /**
+     * Gives the container's ACL.
+     *
+     * @return the ACL of the container.
+     *
+     * @see #getContainer()
+     * @see com.sonyericsson.hudson.plugins.metadata.model.MetadataContainer#getACL()
+     */
+    public synchronized ACL getACL() {
+        return getContainer().getACL();
+    }
+
+    /**
+     * Control method to see if the current user has the {@link PluginImpl#ENABLE_DISABLE_EXTERNAL_RESOURCE} permission
+     * or not. Convenience method for easy invocation from Jelly.
+     *
+     * @return true if the current user has the required permission.
+     *
+     * @see #getACL()
+     * @see ACL#hasPermission(hudson.security.Permission)
+     */
+    @SuppressWarnings("unused")
+    public boolean hasEnableDisablePermission() {
+        return getACL().hasPermission(PluginImpl.ENABLE_DISABLE_EXTERNAL_RESOURCE);
+    }
+
+    /**
+     * Searches up the parent hierarchy for the container.
+     *
+     * @return the container for this resource or null if something is wrong.
+     */
+    private synchronized MetadataContainer<MetadataValue> getContainer() {
+        return getContainer(getParent());
+    }
+
+    /**
+     * Searches up the parent hierarchy for the container, starting with the provided parent.
+     *
+     * @param parent the parent to check/recursively search.
+     * @return the container or null.
+     */
+    private synchronized MetadataContainer<MetadataValue> getContainer(MetadataParent<MetadataValue> parent) {
+        if (parent instanceof MetadataContainer) {
+            return (MetadataContainer<MetadataValue>)parent;
+        } else if (parent == null) {
+            return null;
+        } else {
+            return getContainer(((MetadataValue)parent).getParent());
+        }
+    }
+
     @Override
     public Descriptor<AbstractMetadataValue> getDescriptor() {
         return Hudson.getInstance().getDescriptorByType(ExternalResourceDescriptor.class);
@@ -178,8 +293,19 @@ public class ExternalResource extends TreeNodeMetadataValue {
             return Constants.SERIALIZATION_ALIAS_EXTERNAL_RESOURCE;
         }
 
+        /**
+         * Convenience method for easier reach via Jelly.
+         *
+         * @return the Disable/Enable permission.
+         */
+        @SuppressWarnings("unused")
+        public Permission getDisablePermission() {
+            return PluginImpl.ENABLE_DISABLE_EXTERNAL_RESOURCE;
+        }
+
         @Override
-        public MetadataValue fromJson(JSONObject json) throws JsonUtils.ParseException {
+        public MetadataValue fromJson(JSONObject json, MetadataContainer<MetadataValue> container)
+                throws JsonUtils.ParseException {
             checkRequiredJsonAttribute(json, JSON_ATTR_ID);
             checkRequiredJsonAttribute(json, NAME);
             List<MetadataValue> children = new LinkedList<MetadataValue>();
@@ -187,12 +313,16 @@ public class ExternalResource extends TreeNodeMetadataValue {
                 JSONArray array = json.getJSONArray(CHILDREN);
                 for (int i = 0; i < array.size(); i++) {
                     JSONObject obj = array.getJSONObject(i);
-                    children.add(JsonUtils.toValue(obj));
+                    children.add(JsonUtils.toValue(obj, container));
                 }
             }
             ExternalResource value = new ExternalResource(
                     json.getString(NAME), json.optString(DESCRIPTION),
                     json.getString(JSON_ATTR_ID), children);
+            if (json.has(Constants.JSON_ATTR_ENABLED)) {
+                container.getACL().checkPermission(PluginImpl.ENABLE_DISABLE_EXTERNAL_RESOURCE);
+                value.setEnabled(json.getBoolean(Constants.JSON_ATTR_ENABLED));
+            }
             if (json.has(EXPOSED)) {
                 value.setExposeToEnvironment(json.getBoolean(EXPOSED));
             }
