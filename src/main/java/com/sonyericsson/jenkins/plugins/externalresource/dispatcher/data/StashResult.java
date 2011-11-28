@@ -33,15 +33,11 @@ import java.io.Serializable;
  */
 public class StashResult implements Serializable {
 
-    /**
-     * Status code indicating an OK result.
-     */
-    public static final int STATUS_OK = 0;
-
     private int errorCode;
     private String message;
-    private long leaseExpireTime;
     private String key;
+    private Status status;
+    private Lease lease;
 
     /**
      * Default Constructor.
@@ -64,13 +60,12 @@ public class StashResult implements Serializable {
      * Constructor for an OK result.
      *
      * @param message         the message
-     * @param leaseExpireTime when the lease expires (unix tics)
      * @param key             the key to use for performing a release of the resource.
      */
-    public StashResult(String message, long leaseExpireTime, String key) {
+    public StashResult(String message, String key) {
         this.errorCode = 0;
+        this.status = Status.OK;
         this.message = message;
-        this.leaseExpireTime = leaseExpireTime;
         this.key = key;
     }
 
@@ -79,14 +74,16 @@ public class StashResult implements Serializable {
      *
      * @param errorCode       protocol specific code of the result. 0 indicating OK.
      * @param message         a message from the service.
-     * @param leaseExpireTime when the lease expires (unix tics)
      * @param key             the key to use for performing a release of the resource.
+     * @param status          the status of the call.
+     * @param lease           when will it end.
      */
-    public StashResult(int errorCode, String message, long leaseExpireTime, String key) {
+    public StashResult(int errorCode, String message, String key, Status status, Lease lease) {
         this.errorCode = errorCode;
         this.message = message;
-        this.leaseExpireTime = leaseExpireTime;
         this.key = key;
+        this.status = status;
+        this.lease = lease;
     }
 
     /**
@@ -95,7 +92,7 @@ public class StashResult implements Serializable {
      * @return true if all is OK.
      */
     public boolean isOk() {
-        return errorCode == STATUS_OK;
+        return status == Status.OK;
     }
 
     /**
@@ -117,20 +114,43 @@ public class StashResult implements Serializable {
     }
 
     /**
-     * The unix time when the resource gets released.
-     *
-     * @return time since the epoch.
-     */
-    public long getLeaseExpireTime() {
-        return leaseExpireTime;
-    }
-
-    /**
      * The key for future locking/releasing activities.
      *
      * @return the key.
      */
     public String getKey() {
         return key;
+    }
+
+    /**
+     * the lease when it is end.
+     * @return {@link Lease} when it is end.
+     */
+    public Lease getLease() {
+        return lease;
+    }
+
+    /**
+     * the status of the call.
+     * @return the status.
+     */
+    public Status getStatus() {
+        return status;
+    }
+
+    /**
+     * the status of the Stash Result.
+     * @author Zhang Leimeng
+     */
+    public static enum Status {
+        /**
+         * the result status is OK.
+         */
+        OK,
+        /**
+         * the result status is error.
+         * check the error code in this case.
+         */
+        NO
     }
 }

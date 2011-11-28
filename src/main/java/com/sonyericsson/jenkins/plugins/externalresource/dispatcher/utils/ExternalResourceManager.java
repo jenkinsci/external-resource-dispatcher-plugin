@@ -26,10 +26,26 @@ package com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Messages;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashResult;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashResult.Status;
+
 import hudson.Extension;
 import hudson.ExtensionPoint;
 import hudson.model.Node;
 
+import java.io.IOException;
+import java.text.MessageFormat;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.map.JsonMappingException;
+
+import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.Lease;
 
 /**
  * Manager for handling reservation of resources by external services. For example the external resources on a slave
@@ -97,7 +113,7 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
         /**
          * The result that will be returned for every operation.
          */
-        protected final StashResult okResult = new StashResult(StashResult.STATUS_OK, "noop", 0, "noop");
+        protected final StashResult okResult = new StashResult("noop", "noop");
 
         @Override
         public StashResult reserve(Node node, ExternalResource resource, int seconds) {
@@ -121,6 +137,82 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
     @Extension
     public static class DeviceMonitorExternalResourceManager extends ExternalResourceManager {
 
+        /**
+         * the logger.
+         */
+        private static final Logger logger = Logger.getLogger(DeviceMonitorExternalResourceManager.class.getName());
+
+        /**
+         * the method name of reserve.
+         */
+        private static final String RESERVE_METHOD = "DeviceMonitor.Device.Reserve";
+
+        /**
+         * the method of lock.
+         */
+        private static final String LOCK_METHOD = "DeviceMonitor.Device.Lock";
+
+        /**
+         * the method of release.
+         */
+        private static final String RELEASE_METHOD = "DeviceMonitor.Device.Release";
+
+        /**
+         * the http url template of the RPC call.
+         * 0: the host name.
+         * 1: the port.
+         * 2: the suffix if existed.
+         */
+        private static final String RPC_CALL_URL_TEMPLATE = "http://{0}:{1}/{2}";
+
+        /**
+         * the key of the device parameter in sent json.
+         */
+        private static final String DEVICE = "device";
+
+        /**
+         * the key of the reservekey parameter in sent json.
+         */
+        private static final String RESERVE_KEY = "reservekey";
+
+        /**
+         * the key of the time parameter in sent json.
+         */
+        private static final String TIME = "time";
+
+        /**
+         * the default port the rpc call.
+         */
+        private static final String PORT = "8080";
+
+        /**
+         * get the accessible address on the {@link Node}.
+         * @param node the specified {@link Node} we will connect.
+         * @return the hostName of the node.
+         * @throws InterruptedException when {@link InterruptedException} happened when get host name.
+         * @throws IOException when {@link IOException} happened when get host name.
+         */
+        private String getURL(Node node) throws IOException, InterruptedException {
+            String nodeURL = null;
+            if (null != node) {
+                String hostName = node.toComputer().getHostName();
+                if (null != hostName) {
+                    // TODO: hard code the port and suffix here. need a configure page to hold it somewhere later.
+                    nodeURL = MessageFormat.format(RPC_CALL_URL_TEMPLATE, hostName, PORT, "");
+                }
+            }
+            return nodeURL;
+        }
+
+        /**
+         * get the device id from the resource.
+         * @param resource the external resource supposed to be working on.
+         * @return  the specified deviceId.
+         */
+        private String getDeviceId(ExternalResource resource) {
+            return resource.getId();
+        }
+
         @Override
         public String getDisplayName() {
             return Messages.DeviceMonitorExternalResourceManager_DisplayName();
@@ -128,20 +220,275 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
 
         @Override
         public StashResult reserve(Node node, ExternalResource resource, int seconds) {
-            //TODO Implement
-            return null;
+            RpcResult rpcRes = null;
+            String deviceId = getDeviceId(resource);
+            try {
+                JsonRpcHttpClient client = JsonRpcUtil.createJsonRpcClient(getURL(node),
+                        JsonRpcUtil.customizeObjectMapper());
+                if (null != client && null != deviceId) {
+                    Map<String, Object> params = new HashMap<String, Object>();
+                    params.put(DEVICE, deviceId);
+                    params.put(TIME, seconds);
+                    rpcRes = (RpcResult)client.invoke(RESERVE_METHOD, new Object[]{ params }, RpcResult.class);
+                }
+            } catch (JsonGenerationException jge) {
+                logger.log(Level.WARNING, MessageFormat.format(
+                        "Can not reserve the device {0} because of the invalid json generated to rpc call.",
+                        deviceId), jge);
+            } catch (JsonMappingException jme) {
+                logger.log(Level.WARNING, MessageFormat.format(
+                        "Can not reserve the device {0} because of the invalid json mapping.",
+                        deviceId), jme);
+            } catch (JsonParseException jpre) {
+                logger.log(Level.WARNING, MessageFormat.format(
+                        "Can not reserve the device {0} because failed to parse json.",
+                        deviceId), jpre);
+            } catch (JsonProcessingException jpoe) {
+                logger.log(Level.WARNING, MessageFormat.format(
+                        "Can not reserve the device {0} because failed to process json.",
+                        deviceId), jpoe);
+            } catch (IOException ioe) {
+                logger.log(Level.WARNING, MessageFormat.format(
+                        "Can not reserve the device {0} because IO exception happened.",
+                        deviceId), ioe);
+            } catch (Error e) {
+                // if error type, throw it.
+                throw e;
+            } catch (Throwable e) {
+                logger.log(Level.WARNING, MessageFormat.format(
+                        "Can not reserve the device {0}.",
+                        deviceId), e);
+            }
+            return convert(rpcRes);
         }
 
         @Override
         public StashResult lock(Node node, ExternalResource resource, String key) {
-            //TODO Implement
-            return null;
+            RpcResult rpcRes = null;
+            String deviceId = getDeviceId(resource);
+
+            try {
+                JsonRpcHttpClient client = JsonRpcUtil.createJsonRpcClient(getURL(node),
+                        JsonRpcUtil.customizeObjectMapper());
+                if (null != client && null != deviceId) {
+                    Map<String, Object> params = new HashMap<String, Object>();
+                    params.put(DEVICE, deviceId);
+                    params.put(RESERVE_KEY, key);
+                    rpcRes = (RpcResult)client.invoke(LOCK_METHOD, new Object[] { params }, RpcResult.class);
+                }
+            } catch (JsonGenerationException jge) {
+                logger.log(Level.WARNING, MessageFormat.format(
+                        "Can not lock the device {0} because of the invalid json generated to rpc call.",
+                        deviceId), jge);
+            } catch (JsonMappingException jme) {
+                logger.log(Level.WARNING, MessageFormat.format(
+                        "Can not lock the device {0} because of the invalid json mapping.",
+                        deviceId), jme);
+            } catch (JsonParseException jpre) {
+                logger.log(Level.WARNING, MessageFormat.format(
+                        "Can not lock the device {0} because failed to parse json.",
+                        deviceId), jpre);
+            } catch (JsonProcessingException jpoe) {
+                logger.log(Level.WARNING, MessageFormat.format(
+                        "Can not lock the device {0} because failed to process json.",
+                        deviceId), jpoe);
+            } catch (IOException ioe) {
+                logger.log(Level.WARNING, MessageFormat.format(
+                        "Can not lock the device {0} because IO exception happened.",
+                        deviceId), ioe);
+            } catch (Error e) {
+                // if error type, throw it.
+                throw e;
+            } catch (Throwable e) {
+                logger.log(Level.WARNING, MessageFormat.format(
+                        "Can not lock the device {0}.",
+                        deviceId), e);
+            }
+            return convert(rpcRes);
         }
 
         @Override
         public StashResult release(Node node, ExternalResource resource, String key) {
-            //TODO Implement
-            return null;
+            RpcResult rpcRes = null;
+            String deviceId = getDeviceId(resource);
+
+            try {
+                JsonRpcHttpClient client = JsonRpcUtil.createJsonRpcClient(getURL(node));
+                if (null != client && null != deviceId) {
+                    Map<String, Object> params = new HashMap<String, Object>();
+                    params.put(DEVICE, deviceId);
+                    params.put(RESERVE_KEY, key);
+                    rpcRes = (RpcResult)client.invoke(RELEASE_METHOD, new Object[] { params }, RpcResult.class);
+                }
+            } catch (JsonGenerationException jge) {
+                logger.log(Level.WARNING, MessageFormat.format(
+                        "Can not release the device {0} because of the invalid json generated to rpc call.",
+                        deviceId), jge);
+            } catch (JsonMappingException jme) {
+                logger.log(Level.WARNING, MessageFormat.format(
+                        "Can not release the device {0} because of the invalid json mapping.",
+                        deviceId), jme);
+            } catch (JsonParseException jpre) {
+                logger.log(Level.WARNING, MessageFormat.format(
+                        "Can not release the device {0} because failed to parse json.",
+                        deviceId), jpre);
+            } catch (JsonProcessingException jpoe) {
+                logger.log(Level.WARNING, MessageFormat.format(
+                        "Can not release the device {0} because failed to process json.",
+                        deviceId), jpoe);
+            } catch (IOException ioe) {
+                logger.log(Level.WARNING, MessageFormat.format(
+                        "Can not release the device {0} because IO exception happened.",
+                        deviceId), ioe);
+            } catch (Error e) {
+                // if error type, throw it.
+                throw e;
+            } catch (Throwable e) {
+                logger.log(Level.WARNING, MessageFormat.format("Can not release the device {0}.", deviceId), e);
+            }
+            return convert(rpcRes);
+        }
+
+        /**
+         * convert from the {@link RpcResult} to the {@link StashResult}.
+         * @param rpcResult the specified {@link RpcResult}
+         * @return the {@link StashResult}
+         */
+        private StashResult convert(RpcResult rpcResult) {
+            StashResult targetResult = null;
+            Lease lease = null;
+            if (null != rpcResult) {
+                lease = Lease.createInstance(rpcResult.getTime(), rpcResult.getTimezone(), rpcResult.getIsotime());
+                targetResult = new StashResult(rpcResult.getCode(), rpcResult.getMessage(),
+                        rpcResult.getReservekey(), rpcResult.getStatus(), lease);
+            }
+            return targetResult;
+        }
+
+        /**
+         * this is the rpc call result class.
+         * @author Leimeng Zhang
+         */
+        static class RpcResult {
+            private Status status;
+            private String message;
+            private int code;
+            private String reservekey;
+            private int timezone;
+            private long time;
+            private String isotime;
+
+            /**
+             * the rpc call status.
+             * @return the status of the rpc call. possible values are : OK and NO.
+             */
+            public Status getStatus() {
+                return status;
+            }
+
+            /**
+             * set value for the response status.
+             * @param status the status of response.
+             */
+            public void setStatus(Status status) {
+                this.status = status;
+            }
+
+            /**
+             * the reserved key returned by the reserve call.
+             * @return  the reserved key which can used to lock a device.
+             */
+            public String getReservekey() {
+                return reservekey;
+            }
+
+            /**
+             * set value for the reserved key.
+             * @param reservekey the reserved key of response.
+             */
+            public void setReservekey(String reservekey) {
+                this.reservekey = reservekey;
+            }
+
+            /**
+             * the status code specified by the protocol.
+             * @return the status code of response.
+             */
+            public int getCode() {
+                return code;
+            }
+
+            /**
+             * set value for the status code.
+             * @param code the call status.
+             */
+            public void setCode(int code) {
+                this.code = code;
+            }
+
+            /**
+             * the message of response.
+             * @return the message returned from call.
+             */
+            public String getMessage() {
+                return message;
+            }
+
+            /**
+             * set message of the response.
+             * @param message the message of the response.
+             */
+            public void setMessage(String message) {
+                this.message = message;
+            }
+
+            /**
+             * the offset of local timezone.
+             * @return  the offset of local timezone.
+             */
+            public int getTimezone() {
+                return timezone;
+            }
+
+            /**
+             * set the timezone.
+             * @param timezone timezone.
+             */
+            public void setTimezone(int timezone) {
+                this.timezone = timezone;
+            }
+
+            /**
+             * the time in ms unit.
+             * @return  the time in ms unit.
+             */
+            public long getTime() {
+                return time;
+            }
+
+            /**
+             * set the time.
+             * @param time the time in ms unit.
+             */
+            public void setTime(long time) {
+                this.time = time;
+            }
+
+            /**
+             * the iso time of the time value.
+             * @return  the iso time of the time.
+             */
+            public String getIsotime() {
+                return isotime;
+            }
+
+            /**
+             * set the iso time.
+             * @param isotime   the iso time of the time.
+             */
+            public void setIsotime(String isotime) {
+                this.isotime = isotime;
+            }
         }
     }
 }

@@ -70,7 +70,7 @@ public class ExternalResourceTest {
     }
 
     /**
-     * Tests {@link StashInfo.Lease#createInstance(long, int, String)}.
+     * Tests {@link Lease#createInstance(long, int, String)}.
      * When the slave timeZone is in Japan and the local server is here.
      */
     @Test
@@ -84,7 +84,7 @@ public class ExternalResourceTest {
 
         int seconds = (int)TimeUnit.MILLISECONDS.toSeconds(japanCal.getTimeZone().getRawOffset());
 
-        StashInfo.Lease lease = StashInfo.Lease.createInstance(japanCal.getTimeInMillis(), seconds, "Japan RuleZ");
+        Lease lease = Lease.createInstance(japanCal.getTimeInMillis(), seconds, "Japan RuleZ");
 
         Calendar local = new GregorianCalendar();
         int localOffset = (int)TimeUnit.MILLISECONDS.toHours(local.getTimeZone().getRawOffset());
@@ -94,7 +94,7 @@ public class ExternalResourceTest {
     }
 
     /**
-     * Tests {@link StashInfo.Lease#createInstance(long, int, String)}.
+     * Tests {@link Lease#createInstance(long, int, String)}.
      * When the slave timeZone is PST and the local server is here.
      */
     @Test
@@ -108,7 +108,7 @@ public class ExternalResourceTest {
 
         int seconds = (int)TimeUnit.MILLISECONDS.toSeconds(sfCal.getTimeZone().getRawOffset());
 
-        StashInfo.Lease lease = StashInfo.Lease.createInstance(sfCal.getTimeInMillis(), seconds, "SF RuleZ");
+        Lease lease = Lease.createInstance(sfCal.getTimeInMillis(), seconds, "SF RuleZ");
 
         Calendar local = new GregorianCalendar();
         int localOffset = (int)TimeUnit.MILLISECONDS.toHours(local.getTimeZone().getRawOffset());

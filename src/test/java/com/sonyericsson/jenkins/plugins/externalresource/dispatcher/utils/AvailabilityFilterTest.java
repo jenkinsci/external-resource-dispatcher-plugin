@@ -23,27 +23,29 @@
  */
 package com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils;
 
-import com.sonyericsson.hudson.plugins.metadata.model.MetadataNodeProperty;
-import com.sonyericsson.hudson.plugins.metadata.model.values.MetadataValue;
-import com.sonyericsson.hudson.plugins.metadata.model.values.StringMetadataValue;
-import com.sonyericsson.hudson.plugins.metadata.model.values.TreeStructureUtil;
-import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
-import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashInfo;
-import hudson.model.Node;
-import hudson.util.DescribableList;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.Calendar;
-import java.util.LinkedList;
-import java.util.List;
-
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import hudson.model.Node;
+import hudson.util.DescribableList;
+
+import java.util.Calendar;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import com.sonyericsson.hudson.plugins.metadata.model.MetadataNodeProperty;
+import com.sonyericsson.hudson.plugins.metadata.model.values.MetadataValue;
+import com.sonyericsson.hudson.plugins.metadata.model.values.TreeStructureUtil;
+import com.sonyericsson.hudson.plugins.metadata.model.values.StringMetadataValue;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.Lease;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashInfo;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
 
 /**
  * Tests for {@link AvailabilityFilter}.
@@ -72,7 +74,7 @@ public class AvailabilityFilterTest {
         //A reserved resource
         resource = new ExternalResource("2", "2");
         StashInfo reserved = new StashInfo(StashInfo.StashType.INTERNAL, "somebuild",
-                new StashInfo.Lease(Calendar.getInstance(), "sometime"), "key");
+                new Lease(Calendar.getInstance(), "sometime"), "key");
         resource.setReserved(reserved);
         TreeStructureUtil.addValue(resource, "2", "description", "product", "name");
         TreeStructureUtil.addValue(property, resource, "resources", "attached");

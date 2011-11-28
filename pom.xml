@@ -32,6 +32,12 @@
             <id>maven.jenkins-ci.org</id>
             <url>http://maven.jenkins-ci.org/content/repositories/releases/</url>
         </repository>
+        <repository>
+            <id>jsonrpc4j-webdav-maven-repo</id>
+            <name>jsonrpc4j maven repository</name>
+            <url>http://jsonrpc4j.googlecode.com/svn/maven/repo/</url>
+            <layout>default</layout>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -39,6 +45,18 @@
             <groupId>com.sonyericsson.hudson.plugins.metadata</groupId>
             <artifactId>metadata</artifactId>
             <version>0.1-SNAPSHOT</version>
+        </dependency>
+        <!-- add dependency for the json rpc -->
+        <dependency>
+            <groupId>com.googlecode</groupId>
+            <artifactId>jsonrpc4j</artifactId>
+            <version>0.18</version>
+        </dependency>
+        <!-- Apache license Jackson: -->
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-asl</artifactId>
+            <version>1.7.5</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
