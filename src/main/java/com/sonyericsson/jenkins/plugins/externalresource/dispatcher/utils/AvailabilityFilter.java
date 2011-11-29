@@ -29,6 +29,9 @@ import com.sonyericsson.hudson.plugins.metadata.model.values.MetadataValue;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
 import hudson.model.Node;
 
+import java.util.LinkedList;
+import java.util.List;
+
 /**
  * Utility for singling out available resources on a node.
  *
@@ -97,5 +100,42 @@ public final class AvailabilityFilter {
             }
         }
         return null;
+    }
+
+    /**
+     * Gets all configured external resources on the node in a flat list.
+     *
+     * @param node the node to get them from.
+     * @return a list of {@link ExternalResource}s or null if there is no metadata on the node.
+     */
+    public List<ExternalResource> getExternalResourcesList(Node node) {
+        MetadataNodeProperty property = node.getNodeProperties().get(MetadataNodeProperty.class);
+        if (property != null) {
+            List<ExternalResource> list = new LinkedList<ExternalResource>();
+            for (MetadataValue value : property.getChildren()) {
+                populateExternalResourcesFrom(value, list);
+            }
+            return list;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Recursively searches the metadata value for any external resources and adds them to the provided list.
+     *
+     * @param value the value to "scan"
+     * @param list  the list to populate.
+     * @see #getExternalResourcesList(hudson.model.Node)
+     */
+    private void populateExternalResourcesFrom(MetadataValue value, List<ExternalResource> list) {
+        if (value instanceof ExternalResource) {
+            list.add((ExternalResource)value);
+        } else if (value instanceof MetadataParent) {
+            MetadataParent<MetadataValue> parent = (MetadataParent<MetadataValue>)value;
+            for (MetadataValue child : parent.getChildren()) {
+                populateExternalResourcesFrom(child, list);
+            }
+        }
     }
 }
