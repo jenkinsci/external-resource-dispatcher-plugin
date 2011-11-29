@@ -228,6 +228,17 @@ public class ExternalResource extends TreeNodeMetadataValue {
     }
 
     /**
+     * If this resource is available or not.
+     * I.e. it has neither a {@link #getReserved()} nor a {@link #getLocked()} set.
+     * Not counting if {@link #isEnabled()} is true or not.
+     *
+     * @return true if the resource is available to take.
+     */
+    public boolean isAvailable() {
+        return getReserved() == null && getLocked() == null;
+    }
+
+    /**
      * Gives the container's ACL.
      *
      * @return the ACL of the container.

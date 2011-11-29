@@ -103,6 +103,23 @@ public final class AvailabilityFilter {
     }
 
     /**
+     * Gives a new list of all external resources that {@link ExternalResource#isEnabled()} and
+     * {@link ExternalResource#isAvailable()}.
+     *
+     * @param allResources the list of resources to filter.
+     * @return a new list of the available resources from the provided list.
+     */
+    public List<ExternalResource> filterEnabledAndAvailable(List<ExternalResource> allResources) {
+        List<ExternalResource> filtered = new LinkedList<ExternalResource>();
+        for (ExternalResource resource : allResources) {
+            if (resource.isEnabled() && resource.isAvailable()) {
+                filtered.add(resource);
+            }
+        }
+        return filtered;
+    }
+
+    /**
      * Gets all configured external resources on the node in a flat list.
      *
      * @param node the node to get them from.

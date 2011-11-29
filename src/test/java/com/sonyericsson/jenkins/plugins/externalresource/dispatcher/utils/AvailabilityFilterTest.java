@@ -28,10 +28,13 @@ import com.sonyericsson.hudson.plugins.metadata.model.values.MetadataValue;
 import com.sonyericsson.hudson.plugins.metadata.model.values.StringMetadataValue;
 import com.sonyericsson.hudson.plugins.metadata.model.values.TreeStructureUtil;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashInfo;
 import hudson.model.Node;
 import hudson.util.DescribableList;
+import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -49,7 +52,40 @@ import static org.mockito.Mockito.when;
  */
 public class AvailabilityFilterTest {
 
+    private Node node;
+
     //CS IGNORE MagicNumber FOR NEXT 100 LINES. REASON: TestData.
+
+    /**
+     * Create some common data structures and mocks.
+     */
+    @Before
+    public void commonData() {
+        //First create a structure.
+        MetadataNodeProperty property = new MetadataNodeProperty(new LinkedList<MetadataValue>());
+        TreeStructureUtil.addValue(property, "someValue", "aa", "aa"); //Just something that is not a resource
+        //A disabled resource
+        ExternalResource resource = new ExternalResource("1", "description", "1", false,
+                new LinkedList<MetadataValue>());
+        TreeStructureUtil.addValue(resource, "1", "description", "product", "name");
+        TreeStructureUtil.addValue(property, resource, "resources", "attached");
+        //A reserved resource
+        resource = new ExternalResource("2", "2");
+        StashInfo reserved = new StashInfo(StashInfo.StashType.INTERNAL, "somebuild",
+                new StashInfo.Lease(Calendar.getInstance(), "sometime"), "key");
+        resource.setReserved(reserved);
+        TreeStructureUtil.addValue(resource, "2", "description", "product", "name");
+        TreeStructureUtil.addValue(property, resource, "resources", "attached");
+        resource = new ExternalResource("3", "3");
+        TreeStructureUtil.addValue(resource, "3", "description", "product", "name");
+        property.addChild(new StringMetadataValue("inTheWay", "value")); //Directly beneath the property
+        property.addChild(resource); //Directly beneath the property
+
+        node = mock(Node.class);
+        DescribableList mockList = mock(DescribableList.class);
+        when(mockList.get(MetadataNodeProperty.class)).thenReturn(property);
+        when(node.getNodeProperties()).thenReturn(mockList);
+    }
 
     /**
      * Tests {@link AvailabilityFilter#getExternalResourcesList(hudson.model.Node)}.
@@ -58,25 +94,6 @@ public class AvailabilityFilterTest {
      */
     @Test
     public void testGetExternalResourcesList() throws Exception {
-        //First create a structure.
-        MetadataNodeProperty property = new MetadataNodeProperty(new LinkedList<MetadataValue>());
-        TreeStructureUtil.addValue(property, "someValue", "aa", "aa"); //Just something that is not a resource
-        ExternalResource resource = new ExternalResource("1", "1");
-        TreeStructureUtil.addValue(resource, "1", "description", "product", "name");
-        TreeStructureUtil.addValue(property, resource, "resources", "attached");
-        resource = new ExternalResource("2", "2");
-        TreeStructureUtil.addValue(resource, "2", "description", "product", "name");
-        TreeStructureUtil.addValue(property, resource, "resources", "attached");
-        resource = new ExternalResource("3", "3");
-        TreeStructureUtil.addValue(resource, "3", "description", "product", "name");
-        property.addChild(new StringMetadataValue("inTheWay", "value")); //Directly beneath the property
-        property.addChild(resource); //Directly beneath the property
-
-        Node node = mock(Node.class);
-        DescribableList mockList = mock(DescribableList.class);
-        when(mockList.get(MetadataNodeProperty.class)).thenReturn(property);
-        when(node.getNodeProperties()).thenReturn(mockList);
-
         List<ExternalResource> list = AvailabilityFilter.getInstance().getExternalResourcesList(node);
         assertNotNull(list);
         assertEquals(3, list.size());
@@ -104,9 +121,19 @@ public class AvailabilityFilterTest {
                 fail("Found unexpected id: " + er.getId());
             }
         }
-
         assertTrue(found1);
         assertTrue(found2);
         assertTrue(found3);
+    }
+
+    /**
+     * Test for {@link AvailabilityFilter#filterEnabledAndAvailable(java.util.List)}.
+     */
+    @Test
+    public void testFilterEnabledAndAvailable() {
+        List<ExternalResource> list = AvailabilityFilter.getInstance().getExternalResourcesList(node);
+        list = AvailabilityFilter.getInstance().filterEnabledAndAvailable(list);
+        assertEquals(1, list.size());
+        assertEquals("3", list.get(0).getId());
     }
 }
