@@ -3,5 +3,17 @@
         <f:entry title="${%Release Key:}">
             <f:textbox name="releaseKey" default="${descriptor.releaseKey()}" value="${it.releaseKey}" field="releaseKey"/>
         </f:entry>
+        <f:entry title="${%External Resource Manager:}"
+                 description="${%ManagerDescription}"
+                field="manager">
+            <j:forEach items="${it.getAvailableExternalResourceManagers()}" var="mgr" indexVar="index">
+                <f:radio title="${mgr.getDisplayName()}"
+                         name="manager"
+                         value="${mgr.getClass().getName()}"
+                         checked="${(mgr.getClass().getName() eq it.getManager().getClass().getName())
+                                   or
+                                 (empty it.getManager() and index eq 0)}"/><br/>
+            </j:forEach>
+        </f:entry>
     </f:section>
 </j:jelly>

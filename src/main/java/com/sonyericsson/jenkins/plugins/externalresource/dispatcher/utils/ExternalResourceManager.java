@@ -23,6 +23,7 @@
  */
 package com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils;
 
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Messages;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashResult;
 import hudson.Extension;
@@ -38,6 +39,12 @@ import hudson.model.Node;
  * @author Robert Sandell &lt;robert.sandell@sonyericsson.com&gt;
  */
 public abstract class ExternalResourceManager implements ExtensionPoint {
+
+    /**
+     * The name of the manager to show the admin.
+     * @return the name.
+     */
+    public abstract String getDisplayName();
 
     /**
      * Reserve the resource on the node. A reservation has a deadline, if the device isn't locked until the lease
@@ -82,6 +89,11 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
     @Extension
     public static class NoopExternalResourceManager extends ExternalResourceManager {
 
+        @Override
+        public String getDisplayName() {
+            return Messages.NoopExternalResourceManager_DisplayName();
+        }
+
         /**
          * The result that will be returned for every operation.
          */
@@ -108,6 +120,11 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
      */
     @Extension
     public static class DeviceMonitorExternalResourceManager extends ExternalResourceManager {
+
+        @Override
+        public String getDisplayName() {
+            return Messages.DeviceMonitorExternalResourceManager_DisplayName();
+        }
 
         @Override
         public StashResult reserve(Node node, ExternalResource resource, int seconds) {

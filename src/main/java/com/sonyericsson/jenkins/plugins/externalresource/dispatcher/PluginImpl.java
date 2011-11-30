@@ -24,6 +24,8 @@
 package com.sonyericsson.jenkins.plugins.externalresource.dispatcher;
 
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.ExternalResourceManager;
+import hudson.ExtensionList;
 import hudson.Plugin;
 import hudson.model.Computer;
 import hudson.model.Descriptor.FormException;
@@ -37,6 +39,7 @@ import org.kohsuke.stapler.StaplerRequest;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.util.logging.Logger;
 
 /**
  * Main plugin implementation.
@@ -44,6 +47,11 @@ import java.io.IOException;
  * @author Robert Sandell &lt;robert.sandell@sonyericsson.com&gt;
  */
 public class PluginImpl extends Plugin {
+
+    /**
+     * The logger.
+     */
+    public static final Logger logger = Logger.getLogger(PluginImpl.class.getName());
 
     /**
      * Permission group for  {@link ExternalResource} related operations.
@@ -58,9 +66,28 @@ public class PluginImpl extends Plugin {
             Messages._ExternalResource_EnableDisable(), Computer.CONFIGURE);
 
     /**
+     * Form field name for releaseKey on the config page.
+     */
+    protected static final String FORM_NAME_RELEASE_KEY = "releaseKey";
+
+    /**
+     * Form field name for the external resource manager on the config page.
+     */
+    protected static final String FORM_NAME_MANAGER = "manager";
+
+    /**
      * Release Key, used by releaseAll().
      */
     private String releaseKey;
+
+    /**
+     * The selected external resource manager.
+     */
+    private transient ExternalResourceManager manager;
+    /**
+     * The class name of the manager to store into config.
+     */
+    private String managerClass;
 
     /**
      * Empty constructor, method getInstance() brings the singleton instance.
@@ -108,9 +135,28 @@ public class PluginImpl extends Plugin {
     public void configure(StaplerRequest req, JSONObject formData) throws IOException, ServletException, FormException {
 
         // Setting from the fields in the general config page
-        releaseKey = formData.getString("releaseKey");
+        releaseKey = formData.getString(FORM_NAME_RELEASE_KEY);
+        String managerName = formData.getString(FORM_NAME_MANAGER);
 
+        //Find the name of the configured ExternalResourceManager
+        ExternalResourceManager dynamic =
+                getAvailableExternalResourceManagers().getDynamic(managerName);
+        if (dynamic == null) {
+            throw new FormException("Unknown manager: " + managerName, FORM_NAME_MANAGER);
+        }
+        this.manager = dynamic;
+        this.managerClass = dynamic.getClass().getName();
+        logger.fine("Saving config.");
         save();
+    }
+
+    /**
+     * The list of {@link ExternalResourceManager} Extensions.
+     *
+     * @return a list of available managers.
+     */
+    public ExtensionList<ExternalResourceManager> getAvailableExternalResourceManagers() {
+        return Hudson.getInstance().getExtensionList(ExternalResourceManager.class);
     }
 
     /**
@@ -137,4 +183,41 @@ public class PluginImpl extends Plugin {
         return releaseKey;
     }
 
+    //CS IGNORE LineLength FOR NEXT 6 LINES. REASON: JavaDoc
+
+    /**
+     * Gives the default
+     * {@link com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.ExternalResourceManager.NoopExternalResourceManager}.
+     * @return the default manager.
+     */
+    public static ExternalResourceManager getNoopResourceManager() {
+        return Hudson.getInstance().getExtensionList(ExternalResourceManager.class)
+                .get(ExternalResourceManager.NoopExternalResourceManager.class);
+    }
+
+    /**
+     * The selected manager.
+     *
+     * @return the manager.
+     */
+    public synchronized ExternalResourceManager getManager() {
+        if (manager == null) {
+            if (managerClass != null && !managerClass.isEmpty()) {
+                ExternalResourceManager dynamic =
+                        getAvailableExternalResourceManagers().getDynamic(managerClass);
+                if (dynamic != null) {
+                    manager = dynamic;
+                } else {
+                    logger.severe("The configured external resource manager could not be found! "
+                            + managerClass + " Using the default No-Op-manager.");
+                    manager = getNoopResourceManager();
+                }
+            } else {
+                logger.severe("No configured external resource manager could be found! "
+                        + "Using the default No-Op-manager.");
+                manager = getNoopResourceManager();
+            }
+        }
+        return manager;
+    }
 }
