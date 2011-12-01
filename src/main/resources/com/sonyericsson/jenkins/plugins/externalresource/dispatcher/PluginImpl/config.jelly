@@ -3,6 +3,13 @@
         <f:entry title="${%Release Key:}">
             <f:textbox name="releaseKey" default="${descriptor.releaseKey()}" value="${it.releaseKey}" field="releaseKey"/>
         </f:entry>
+        <f:entry title="${%Reservation Time:}"
+                 description="${%Number of seconds to reserve an external resource during scheduling.}">
+            <f:textbox name="reserveTime"
+                       default="${it.getDefaultReserveTime()}"
+                       value="${it.reserveTime}"
+                       field="reserveTime"/>
+        </f:entry>
         <f:entry title="${%External Resource Manager:}"
                  description="${%ManagerDescription}"
                 field="manager">

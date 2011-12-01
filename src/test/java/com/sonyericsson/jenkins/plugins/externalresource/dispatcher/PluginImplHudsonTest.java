@@ -58,6 +58,7 @@ public class PluginImplHudsonTest extends HudsonTestCase {
     public void testConfigureManager() throws Descriptor.FormException, IOException, ServletException {
         JSONObject config = new JSONObject();
         config.put(PluginImpl.FORM_NAME_RELEASE_KEY, "some_key");
+        config.put(PluginImpl.FORM_NAME_RESERVE_TIME, PluginImpl.getInstance().getDefaultReserveTime());
         config.put(PluginImpl.FORM_NAME_MANAGER,
                 ExternalResourceManager.DeviceMonitorExternalResourceManager.class.getName());
         PluginImpl.getInstance().configure(null, config);

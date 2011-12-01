@@ -61,6 +61,17 @@ public final class Constants {
     public static final String JSON_ATTR_ENABLED = "enabled";
 
     /**
+     * The prio order for {@link ExternalResourceQueueTaskDispatcher} so that other
+     * {@link hudson.model.queue.QueueTaskDispatcher}s can make sure to run before or after this one.
+     */
+    public static final int QTD_ORDINAL = 5;
+
+    /**
+     * Default number of seconds to reserve a resource.
+     */
+    public static final int DEFAULT_RESERVE_TIME = 3; //TODO probably needs tweaking.
+
+    /**
      * Utility Constructor.
      */
     private Constants() {

@@ -76,6 +76,11 @@ public class PluginImpl extends Plugin {
     protected static final String FORM_NAME_MANAGER = "manager";
 
     /**
+     * Form field name for the external resource manager on the config page.
+     */
+    protected static final String FORM_NAME_RESERVE_TIME = "reserveTime";
+
+    /**
      * Release Key, used by releaseAll().
      */
     private String releaseKey;
@@ -88,6 +93,8 @@ public class PluginImpl extends Plugin {
      * The class name of the manager to store into config.
      */
     private String managerClass;
+
+    private int reserveTime = Constants.DEFAULT_RESERVE_TIME;
 
     /**
      * Empty constructor, method getInstance() brings the singleton instance.
@@ -146,6 +153,9 @@ public class PluginImpl extends Plugin {
         }
         this.manager = dynamic;
         this.managerClass = dynamic.getClass().getName();
+
+        this.reserveTime = formData.getInt(FORM_NAME_RESERVE_TIME);
+
         logger.fine("Saving config.");
         save();
     }
@@ -219,5 +229,26 @@ public class PluginImpl extends Plugin {
             }
         }
         return manager;
+    }
+
+    /**
+     * The configured number of seconds to reserve a resource during scheduling in
+     * {@link ExternalResourceQueueTaskDispatcher}.
+     *
+     * @return the seconds.
+     */
+    public int getReserveTime() {
+        return reserveTime;
+    }
+
+    /**
+     * The default number of seconds to reserve a resource.
+     * Used for simplified jelly usage.
+     *
+     * @return {@link Constants#DEFAULT_RESERVE_TIME}.
+     */
+    @SuppressWarnings("unused")
+    public int getDefaultReserveTime() {
+        return Constants.DEFAULT_RESERVE_TIME;
     }
 }

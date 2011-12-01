@@ -55,6 +55,21 @@ public class StashInfo implements Serializable {
     }
 
     /**
+     * Creates a new object with info from the StashResult.
+     * The type will be defaulted to {@link StashInfo.StashType#INTERNAL}.
+     * @param result the result from a
+     *      {@link com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.ExternalResourceManager} operation.
+     * @param stashedBy the build that it belongs to.
+     */
+    public StashInfo(StashResult result, String stashedBy) {
+        this.stashedBy = stashedBy;
+        this.type = StashType.INTERNAL;
+        this.key = result.getKey();
+        //TODO when StashResult has the new design implementation use that info.
+        this.lease = Lease.createInstance(result.getLeaseExpireTime(), 1, "");
+    }
+
+    /**
      * Exactly what stashed it. If {@link #getType()} is {@link StashType#INTERNAL} then this points to a build on the
      * local Jenkins server.
      *
