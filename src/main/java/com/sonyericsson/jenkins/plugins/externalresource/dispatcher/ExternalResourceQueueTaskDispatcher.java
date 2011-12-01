@@ -24,6 +24,7 @@
 package com.sonyericsson.jenkins.plugins.externalresource.dispatcher;
 
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ReservedExternalResourceAction;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashInfo;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashResult;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.veto.BecauseNoAvailableResources;
@@ -42,9 +43,8 @@ import hudson.model.queue.QueueTaskDispatcher;
 import java.util.List;
 
 /**
- * The main veto engine.
- * If a node has an available and matching resource, the resource will be reserved and OKd to be scheduled on that node.
- * Otherwise the build will be blocked from that Node.
+ * The main veto engine. If a node has an available and matching resource, the resource will be reserved and OKd to be
+ * scheduled on that node. Otherwise the build will be blocked from that Node.
  *
  * @author Robert Sandell &lt;robert.sandell@sonyericsson.com&gt;
  */
@@ -106,10 +106,30 @@ public class ExternalResourceQueueTaskDispatcher extends QueueTaskDispatcher {
             return new BecauseNothingReserved(node);
         }
 
-        //TODO set metadata on build, probably on the item.future object, needs investigation.
+        //Cannot create a metadata action since it requires a build. Temporarely storing it in a separate action.
+        ReservedExternalResourceAction storage = getReservedExternalResourceAction(item);
+        storage.push(reservedResource);
+
 
         //Everything is fine, now continue.
         return null;
+    }
+
+    /**
+     * Finds the action or creates and adds it to the item if it doesn't exsist.
+     *
+     * @param item the build to be.
+     * @return the storage.
+     */
+    private ReservedExternalResourceAction getReservedExternalResourceAction(Queue.BuildableItem item) {
+        List<ReservedExternalResourceAction> actions = item.getActions(ReservedExternalResourceAction.class);
+        if (actions != null && actions.size() > 0) {
+            return actions.get(0);
+        } else {
+            ReservedExternalResourceAction storage = new ReservedExternalResourceAction();
+            item.addAction(storage);
+            return storage;
+        }
     }
 
     /**

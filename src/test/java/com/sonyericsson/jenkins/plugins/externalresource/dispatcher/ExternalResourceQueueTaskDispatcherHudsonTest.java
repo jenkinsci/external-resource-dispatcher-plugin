@@ -27,6 +27,7 @@ import com.sonyericsson.hudson.plugins.metadata.model.MetadataNodeProperty;
 import com.sonyericsson.hudson.plugins.metadata.model.values.MetadataValue;
 import com.sonyericsson.hudson.plugins.metadata.model.values.TreeStructureUtil;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ReservedExternalResourceAction;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashInfo;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.AbstractDeviceSelection;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.StringDeviceSelection;
@@ -99,5 +100,10 @@ public class ExternalResourceQueueTaskDispatcherHudsonTest extends HudsonTestCas
         }
         assertNotNull(reservation);
         assertTrue(reservation.getStashedBy().contains(project.getName()));
+
+        //TODO when the run listener is implemented this needs to be changed as it should be empty.
+        ReservedExternalResourceAction action = future.get().getAction(ReservedExternalResourceAction.class);
+        assertNotNull(action);
+        assertSame(resource, action.peek());
     }
 }
