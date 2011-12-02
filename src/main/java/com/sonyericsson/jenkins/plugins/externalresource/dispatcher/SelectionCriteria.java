@@ -25,6 +25,20 @@ package com.sonyericsson.jenkins.plugins.externalresource.dispatcher;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import com.sonyericsson.hudson.plugins.metadata.model.MetadataBuildAction;
+import com.sonyericsson.hudson.plugins.metadata.model.values.TreeNodeMetadataValue;
+import com.sonyericsson.hudson.plugins.metadata.model.values.TreeStructureUtil;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ReservedExternalResourceAction;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashInfo;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashResult;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.ExternalResourceManager;
+import hudson.model.AbstractBuild;
+import hudson.model.BuildListener;
+import hudson.model.Node;
+
 
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.export.ExportedBean;
@@ -38,6 +52,9 @@ import hudson.model.JobPropertyDescriptor;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.AbstractDeviceSelection;
 
+import static com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Constants.BUILD_LOCKED_RESOURCE_PARENT_PATH;
+import static com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Constants.BUILD_LOCKED_RESOURCE_NAME;
+
 
 /**
  * Holder for the user specified criteria about what resource the build wants to use.
@@ -47,6 +64,7 @@ import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.Ab
 @ExportedBean
 public class SelectionCriteria extends JobProperty<AbstractProject<?, ?>> {
 
+    private static final Logger logger = Logger.getLogger(SelectionCriteria.class.getName());
     private List<AbstractDeviceSelection> deviceSelectionList;
 
     /**
@@ -95,6 +113,70 @@ public class SelectionCriteria extends JobProperty<AbstractProject<?, ?>> {
         }
         return matchingResourceList;
      }
+
+    @Override
+    public boolean prebuild(AbstractBuild<?, ?> build,
+                        BuildListener listener) {
+        String buildName = build.getFullDisplayName();
+        ReservedExternalResourceAction action = build.getAction(ReservedExternalResourceAction.class);
+        if (action == null) {
+            logger.log(Level.SEVERE,
+                    "No phone chosen even though we have selection criteria, aborting build: [{0}].", buildName);
+            listener.getLogger().println(
+                    "No phone chosen even though we have selection criteria, aborting build.");
+            return false;
+        }
+        ExternalResource reserved = action.pop();
+        StashInfo reservedInfo = reserved.getReserved();
+        ExternalResourceManager resourceManager = PluginImpl.getInstance().getManager();
+        Node node = build.getBuiltOn();
+        //If the phone is not reserved anymore, try to reserve it again.
+        //If it cannot be reserved, fail the build.
+        if (reservedInfo == null) {
+            StashResult result = resourceManager.reserve(node, reserved, PluginImpl.getInstance().getReserveTime());
+            if (result == null || !result.isOk()) {
+                logger.severe(Messages.SelectionCriteria_ErrorLocking(reserved.getId()));
+                listener.getLogger().println(Messages.SelectionCriteria_ErrorLocking(reserved.getId()));
+                return false;
+            } else {
+                reservedInfo = new StashInfo(result, build.getUrl());
+            }
+        }
+        //we have a reserved phone, now lock it.
+        StashResult lockResult = resourceManager.lock(node, reserved, reservedInfo.getKey());
+        if (lockResult == null || !lockResult.isOk()) {
+            logger.log(Level.SEVERE, "Could not lock device: [{0}], aborting the build: [{1}].",
+                    new String[]{reserved.getId(), buildName});
+            listener.getLogger().println("Could not lock device: " + reserved.getId() + ", aborting the build.");
+            return false;
+        }
+        //update the node and build information.
+        StashInfo lockInfo = new StashInfo(lockResult, build.getUrl());
+        reserved.setLocked(lockInfo);
+        ExternalResource locked;
+        try {
+            locked = reserved.clone();
+        } catch (CloneNotSupportedException e) {
+            //should not happen since ExternalResource and its ancestors are cloneable.
+            logger.log(Level.SEVERE,
+                    "Could not clone the External resource: [{0}], aborting the build: [{1}].",
+                    new String[]{reserved.getId(), buildName});
+            listener.getLogger().println(
+                    "Could not clone the External resource: " + reserved.getId() + ", aborting the build.");
+            return false;
+        }
+        MetadataBuildAction metadataBuildAction = build.getAction(MetadataBuildAction.class);
+        if (metadataBuildAction == null) {
+            metadataBuildAction = new MetadataBuildAction(build);
+            build.addAction(action);
+        }
+        locked.setName(BUILD_LOCKED_RESOURCE_NAME);
+        TreeNodeMetadataValue lockedTree = TreeStructureUtil.createPath(locked, BUILD_LOCKED_RESOURCE_PARENT_PATH);
+        metadataBuildAction.addChild(lockedTree);
+        locked.setExposeToEnvironment(true);
+        //The resource has been locked and we can continue with the build.
+        return true;
+    }
 
     /**
      * Descriptor for {@link SelectionCriteria}.

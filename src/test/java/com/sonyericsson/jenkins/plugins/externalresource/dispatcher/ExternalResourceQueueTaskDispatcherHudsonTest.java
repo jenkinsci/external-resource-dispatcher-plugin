@@ -100,10 +100,8 @@ public class ExternalResourceQueueTaskDispatcherHudsonTest extends HudsonTestCas
         }
         assertNotNull(reservation);
         assertTrue(reservation.getStashedBy().contains(project.getName()));
-
-        //TODO when the run listener is implemented this needs to be changed as it should be empty.
         ReservedExternalResourceAction action = future.get().getAction(ReservedExternalResourceAction.class);
         assertNotNull(action);
-        assertSame(resource, action.peek());
+
     }
 }

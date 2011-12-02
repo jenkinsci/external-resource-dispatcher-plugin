@@ -154,6 +154,11 @@ public class ExternalResource extends TreeNodeMetadataValue {
         return id;
     }
 
+    @Override
+    public void setName(String name) {
+        super.setName(name);
+    }
+
     /**
      * Information about the reservation status if the resource. Null indicating not reserved.
      *
