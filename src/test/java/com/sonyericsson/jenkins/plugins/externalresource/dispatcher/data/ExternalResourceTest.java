@@ -23,17 +23,34 @@
  */
 package com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data;
 
+import com.sonyericsson.hudson.plugins.metadata.model.JsonUtils;
 import com.sonyericsson.hudson.plugins.metadata.model.MetadataJobProperty;
 import com.sonyericsson.hudson.plugins.metadata.model.MetadataNodeProperty;
+import com.sonyericsson.hudson.plugins.metadata.model.values.MetadataValue;
+import com.sonyericsson.hudson.plugins.metadata.model.values.TreeStructureUtil;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Constants;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.MockUtils;
+import hudson.model.Hudson;
+import net.sf.json.JSONObject;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.LinkedList;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
+import static com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Constants.JSON_ATTR_ENABLED;
+import static com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Constants.JSON_ATTR_ID;
+import static com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Constants.JSON_ATTR_LOCKED;
+import static com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Constants.JSON_ATTR_RESERVED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 
 //CS IGNORE MagicNumber FOR NEXT 200 LINES. REASON: Test data.
@@ -43,6 +60,7 @@ import static org.junit.Assert.assertTrue;
  *
  * @author Robert Sandell &lt;robert.sandell@sonyericsson.com&gt;
  */
+@RunWith(PowerMockRunner.class)
 public class ExternalResourceTest {
 
     //CS IGNORE LineLength FOR NEXT 4 LINES. REASON: JavaDoc
@@ -70,8 +88,8 @@ public class ExternalResourceTest {
     }
 
     /**
-     * Tests {@link Lease#createInstance(long, int, String)}.
-     * When the slave timeZone is in Japan and the local server is here.
+     * Tests {@link Lease#createInstance(long, int, String)}. When the slave timeZone is in Japan and the local server
+     * is here.
      */
     @Test
     public void testLeaseCreateInstanceJapan() {
@@ -94,8 +112,8 @@ public class ExternalResourceTest {
     }
 
     /**
-     * Tests {@link Lease#createInstance(long, int, String)}.
-     * When the slave timeZone is PST and the local server is here.
+     * Tests {@link Lease#createInstance(long, int, String)}. When the slave timeZone is PST and the local server is
+     * here.
      */
     @Test
     public void testLeaseCreateInstanceSf() {
@@ -115,5 +133,70 @@ public class ExternalResourceTest {
         int sfOffset = (int)TimeUnit.SECONDS.toHours(seconds);
 
         assertEquals(9 - sfOffset + localOffset, lease.getServerTime().get(Calendar.HOUR_OF_DAY));
+    }
+
+    /**
+     * Tests {@link ExternalResource#toJson()}.
+     */
+    @PrepareForTest(Hudson.class)
+    @Test
+    public void testToJson() {
+        Hudson hudson = MockUtils.mockHudson();
+        MockUtils.mockMetadataValueDescriptors(hudson);
+
+        String name = "name";
+        String description = "description";
+        String id = "id";
+        ExternalResource resource = new ExternalResource(name, description, id,
+                true, new LinkedList<MetadataValue>());
+        String me = "me";
+        resource.setReserved(
+                new StashInfo(StashInfo.StashType.INTERNAL, me, new Lease(Calendar.getInstance(), "iso"), "key"));
+        TreeStructureUtil.addValue(resource, "value", "descript", "some", "path");
+
+        JSONObject json = resource.toJson();
+        assertEquals(name, json.getString(JsonUtils.NAME));
+        assertEquals(id, json.getString(JSON_ATTR_ID));
+        assertTrue(json.getBoolean(JSON_ATTR_ENABLED));
+        assertTrue(json.getJSONObject(JSON_ATTR_LOCKED).isNullObject());
+        JSONObject reserved = json.getJSONObject(JSON_ATTR_RESERVED);
+        assertNotNull(reserved);
+        assertEquals(StashInfo.StashType.INTERNAL.name(), reserved.getString(Constants.JSON_ATTR_TYPE));
+        assertEquals(me, reserved.getString(Constants.JSON_ATTR_STASHED_BY));
+        assertEquals(1, json.getJSONArray(JsonUtils.CHILDREN).size());
+    }
+
+    /**
+     * Tests {@link ExternalResource#clone()}.
+     *
+     * @throws CloneNotSupportedException if it fails.
+     */
+    @Test
+    public void testClone() throws CloneNotSupportedException {
+        String name = "name";
+        String description = "description";
+        String id = "id";
+        ExternalResource resource = new ExternalResource(name, description, id,
+                true, new LinkedList<MetadataValue>());
+        String me = "me";
+        resource.setReserved(
+                new StashInfo(StashInfo.StashType.INTERNAL, me, new Lease(Calendar.getInstance(), "iso"), "key"));
+        TreeStructureUtil.addValue(resource, "value", "descript", "some", "path");
+
+        ExternalResource other = resource.clone();
+
+        assertEquals(name, other.getName());
+        assertEquals(id, other.getId());
+        assertNotNull(other.getReserved());
+        assertNotSame(resource.getReserved(), other.getReserved());
+        assertEquals(resource.getReserved().getStashedBy(), other.getReserved().getStashedBy());
+        assertNotSame(resource.getReserved().getLease(), other.getReserved().getLease());
+        assertEquals(resource.getReserved().getLease().getSlaveIsoTime(),
+                other.getReserved().getLease().getSlaveIsoTime());
+        assertNotSame(TreeStructureUtil.getPath(resource, "some", "path"),
+                TreeStructureUtil.getPath(other, "some", "path"));
+        assertEquals(TreeStructureUtil.getPath(resource, "some", "path").getValue(),
+                TreeStructureUtil.getPath(other, "some", "path").getValue());
+
     }
 }

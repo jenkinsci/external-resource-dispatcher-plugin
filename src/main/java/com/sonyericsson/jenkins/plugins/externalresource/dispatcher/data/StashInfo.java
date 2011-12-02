@@ -23,6 +23,9 @@
  */
 package com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data;
 
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Constants;
+import net.sf.json.JSONObject;
+
 import java.io.Serializable;
 
 /**
@@ -30,7 +33,7 @@ import java.io.Serializable;
  *
  * @author Robert Sandell &lt;robert.sandell@sonyericsson.com&gt;
  */
-public class StashInfo implements Serializable {
+public class StashInfo implements Serializable, Cloneable {
     private String stashedBy;
     private StashType type;
     private Lease lease;
@@ -52,10 +55,12 @@ public class StashInfo implements Serializable {
     }
 
     /**
-     * Creates a new object with info from the StashResult.
-     * The type will be defaulted to {@link StashInfo.StashType#INTERNAL}.
-     * @param result the result from a
-     *      {@link com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.ExternalResourceManager} operation.
+     * Creates a new object with info from the StashResult. The type will be defaulted to {@link
+     * StashInfo.StashType#INTERNAL}.
+     *
+     * @param result    the result from a
+     *          {@link com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.ExternalResourceManager}
+     *                  operation.
      * @param stashedBy the build that it belongs to.
      */
     public StashInfo(StashResult result, String stashedBy) {
@@ -63,6 +68,15 @@ public class StashInfo implements Serializable {
         this.type = StashType.INTERNAL;
         this.key = result.getKey();
         this.lease = result.getLease();
+    }
+
+    @Override
+    public StashInfo clone() throws CloneNotSupportedException {
+        StashInfo other = (StashInfo)super.clone();
+        if (this.lease != null) {
+            other.lease = this.lease.clone();
+        }
+        return other;
     }
 
     /**
@@ -109,6 +123,27 @@ public class StashInfo implements Serializable {
      */
     public boolean isInternal() {
         return getType() == StashType.INTERNAL;
+    }
+
+    /**
+     * Returns a JSON representation of this object.
+     *
+     * @return the object in JSON format.
+     *
+     * @see com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource#toJson()
+     * @see com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.Lease#toJson()
+     */
+    public JSONObject toJson() {
+        JSONObject json = new JSONObject();
+        json.put(Constants.JSON_ATTR_STASHED_BY, stashedBy);
+        json.put(Constants.JSON_ATTR_TYPE, type.name());
+        if (lease != null) {
+            json.put(Constants.JSON_ATTR_LEASE, lease.toJson());
+        } else {
+            json.put(Constants.JSON_ATTR_LEASE, new JSONObject(true));
+        }
+        json.put(Constants.JSON_ATTR_KEY, key);
+        return json;
     }
 
 

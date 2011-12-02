@@ -57,7 +57,10 @@ import static com.sonyericsson.hudson.plugins.metadata.model.JsonUtils.EXPOSED;
 import static com.sonyericsson.hudson.plugins.metadata.model.JsonUtils.GENERATED;
 import static com.sonyericsson.hudson.plugins.metadata.model.JsonUtils.NAME;
 import static com.sonyericsson.hudson.plugins.metadata.model.JsonUtils.checkRequiredJsonAttribute;
+import static com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Constants.JSON_ATTR_ENABLED;
 import static com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Constants.JSON_ATTR_ID;
+import static com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Constants.JSON_ATTR_LOCKED;
+import static com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Constants.JSON_ATTR_RESERVED;
 
 /**
  * Metadata type representing an external resource attached to a Node.
@@ -228,9 +231,8 @@ public class ExternalResource extends TreeNodeMetadataValue {
     }
 
     /**
-     * If this resource is available or not.
-     * I.e. it has neither a {@link #getReserved()} nor a {@link #getLocked()} set.
-     * Not counting if {@link #isEnabled()} is true or not.
+     * If this resource is available or not. I.e. it has neither a {@link #getReserved()} nor a {@link #getLocked()}
+     * set. Not counting if {@link #isEnabled()} is true or not.
      *
      * @return true if the resource is available to take.
      */
@@ -294,6 +296,36 @@ public class ExternalResource extends TreeNodeMetadataValue {
         return Hudson.getInstance().getDescriptorByType(ExternalResourceDescriptor.class);
     }
 
+    @Override
+    public ExternalResource clone() throws CloneNotSupportedException {
+        ExternalResource other = (ExternalResource)super.clone();
+        if (reserved != null) {
+            other.reserved = reserved.clone();
+        }
+        if (locked != null) {
+            other.locked = this.locked.clone();
+        }
+        return other;
+    }
+
+    @Override
+    public JSONObject toJson() {
+        JSONObject json = super.toJson();
+        json.put(JSON_ATTR_ID, id);
+        json.put(JSON_ATTR_ENABLED, enabled);
+        if (reserved != null) {
+            json.put(JSON_ATTR_RESERVED, reserved.toJson());
+        } else {
+            json.put(JSON_ATTR_RESERVED, new JSONObject(true));
+        }
+        if (locked != null) {
+            json.put(JSON_ATTR_LOCKED, locked.toJson());
+        } else {
+            json.put(JSON_ATTR_LOCKED, new JSONObject(true));
+        }
+        return json;
+    }
+
     /**
      * Descriptor for {@link ExternalResource} metadata type.
      */
@@ -330,9 +362,9 @@ public class ExternalResource extends TreeNodeMetadataValue {
             ExternalResource value = new ExternalResource(
                     json.getString(NAME), json.optString(DESCRIPTION),
                     json.getString(JSON_ATTR_ID), children);
-            if (json.has(Constants.JSON_ATTR_ENABLED)) {
+            if (json.has(JSON_ATTR_ENABLED)) {
                 container.getACL().checkPermission(PluginImpl.ENABLE_DISABLE_EXTERNAL_RESOURCE);
-                value.setEnabled(json.getBoolean(Constants.JSON_ATTR_ENABLED));
+                value.setEnabled(json.getBoolean(JSON_ATTR_ENABLED));
             }
             if (json.has(EXPOSED)) {
                 value.setExposeToEnvironment(json.getBoolean(EXPOSED));

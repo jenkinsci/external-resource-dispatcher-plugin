@@ -50,6 +50,16 @@ public final class Constants {
     public static final String JSON_ATTR_ID = "id";
 
     /**
+     * Reserved attribute in a JSON object.
+     */
+    public static final String JSON_ATTR_RESERVED = "reserved";
+
+    /**
+     * Locked attribute in a JSON object.
+     */
+    public static final String JSON_ATTR_LOCKED = "locked";
+
+    /**
      * The root URL ror http commands relating to external resource.
      */
     public static final String EXTERNAL_RESOURCE_HTTP_COMMANDS_URL = "external-resource-httpcli";
@@ -70,6 +80,38 @@ public final class Constants {
      * Default number of seconds to reserve a resource.
      */
     public static final int DEFAULT_RESERVE_TIME = 3; //TODO probably needs tweaking.
+    /**
+     * JSON Attribute for {@link com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashInfo#stashedBy}.
+     */
+    public static final String JSON_ATTR_STASHED_BY = "stashed-by";
+    /**
+     * JSON Attribute for {@link com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashInfo#type}.
+     */
+    public static final String JSON_ATTR_TYPE = "type";
+    /**
+     * JSON Attribute for {@link com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashInfo#lease}.
+     */
+    public static final String JSON_ATTR_LEASE = "lease";
+    /**
+     * JSON attribute for {@link com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashInfo#key}.
+     */
+    public static final String JSON_ATTR_KEY = "key";
+    /**
+     * JSON attribute for {@link com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.Lease#serverTime}.
+     */
+    public static final String JSON_ATTR_TIME_MILLIS = "millis";
+    /**
+     * JSON attribute for {@link com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.Lease#serverTime}.
+     */
+    public static final String JSON_ATTR_TIME_TIME_ZONE = "time-zone";
+    /**
+     * JSON attribute for {@link com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.Lease#serverTime}.
+     */
+    public static final String JSON_ATTR_SERVER_TIME = "server-time";
+    /**
+     * JSON attribute for {@link com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.Lease#slaveIsoTime}.
+     */
+    public static final String JSON_ATTR_SLAVE_ISO_TIME = "slave-iso-time";
 
     /**
      * Utility Constructor.
