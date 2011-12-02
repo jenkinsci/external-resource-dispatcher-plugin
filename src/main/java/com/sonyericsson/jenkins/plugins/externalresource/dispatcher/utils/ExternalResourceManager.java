@@ -161,11 +161,11 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
             public void run() {
                 try {
                     logger.fine("Reservation timeout.");
-                    //TODO call the "real" Cli method when it is in place.
-                    ExternalResource resource = ErCliUtils.findExternalResource(node, id);
-                    resource.setReserved(null);
+                    ErCliUtils.unSetReservation(node, id);
                 } catch (CmdLineException e) {
                     logger.log(Level.WARNING, "Failed to timeout a reservation of " + id + " on node " + node + "!", e);
+                } catch (IOException e) {
+                    logger.log(Level.WARNING, "Failed to save the new reservation state to disk!", e);
                 }
             }
         }
