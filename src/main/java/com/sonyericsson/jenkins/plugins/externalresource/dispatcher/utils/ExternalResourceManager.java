@@ -23,29 +23,31 @@
  */
 package com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils;
 
+import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Messages;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.cli.ErCliUtils;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.Lease;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashResult;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashResult.Status;
-
 import hudson.Extension;
 import hudson.ExtensionPoint;
 import hudson.model.Node;
+import hudson.triggers.Trigger;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.kohsuke.args4j.CmdLineException;
 
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.JsonProcessingException;
-import org.codehaus.jackson.map.JsonMappingException;
-
-import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
-import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.Lease;
 
 /**
  * Manager for handling reservation of resources by external services. For example the external resources on a slave
@@ -58,6 +60,7 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
 
     /**
      * The name of the manager to show the admin.
+     *
      * @return the name.
      */
     public abstract String getDisplayName();
@@ -92,9 +95,10 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
      *
      * @param node     the node holding the resource.
      * @param resource the resource to unlock.
-     * @param key      the key to unlock the resource with (retained from a previous call to {@link
-     *                 #lock(hudson.model.Node,
-     *                 com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource, String)}.
+     * @param key      the key to unlock the resource with (retained from a previous call to
+     *                 {@link  #lock(hudson.model.Node,
+     *                 com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource,
+     *                 String)}.
      * @return the result.
      */
     public abstract StashResult release(Node node, ExternalResource resource, String key);
@@ -117,6 +121,8 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
 
         @Override
         public StashResult reserve(Node node, ExternalResource resource, int seconds) {
+            Trigger.timer.schedule(new ReservationTimeoutTask(node.getNodeName(), resource.getId()),
+                    TimeUnit.SECONDS.toMillis(seconds));
             return okResult;
         }
 
@@ -128,6 +134,40 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
         @Override
         public StashResult release(Node node, ExternalResource resource, String key) {
             return okResult;
+        }
+
+        /**
+         * TimerTask to schedule when a Noop reservation times out.
+         */
+        static class ReservationTimeoutTask extends TimerTask {
+            /**
+             * The logger
+             */
+            private static final Logger logger = Logger.getLogger(ReservationTimeoutTask.class.getName());
+            private String node;
+            private String id;
+
+            /**
+             * standard Constructor.
+             * @param node the name of the node.
+             * @param id the id of the resource.
+             */
+            ReservationTimeoutTask(String node, String id) {
+                this.node = node;
+                this.id = id;
+            }
+
+            @Override
+            public void run() {
+                try {
+                    logger.fine("Reservation timeout.");
+                    //TODO call the "real" Cli method when it is in place.
+                    ExternalResource resource = ErCliUtils.findExternalResource(node, id);
+                    resource.setReserved(null);
+                } catch (CmdLineException e) {
+                    logger.log(Level.WARNING, "Failed to timeout a reservation of " + id + " on node " + node + "!", e);
+                }
+            }
         }
     }
 
@@ -158,10 +198,7 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
         private static final String RELEASE_METHOD = "DeviceMonitor.Device.Release";
 
         /**
-         * the http url template of the RPC call.
-         * 0: the host name.
-         * 1: the port.
-         * 2: the suffix if existed.
+         * the http url template of the RPC call. 0: the host name. 1: the port. 2: the suffix if existed.
          */
         private static final String RPC_CALL_URL_TEMPLATE = "http://{0}:{1}/{2}";
 
@@ -187,10 +224,12 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
 
         /**
          * get the accessible address on the {@link Node}.
+         *
          * @param node the specified {@link Node} we will connect.
          * @return the hostName of the node.
+         *
          * @throws InterruptedException when {@link InterruptedException} happened when get host name.
-         * @throws IOException when {@link IOException} happened when get host name.
+         * @throws IOException          when {@link IOException} happened when get host name.
          */
         private String getURL(Node node) throws IOException, InterruptedException {
             String nodeURL = null;
@@ -206,8 +245,9 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
 
         /**
          * get the device id from the resource.
+         *
          * @param resource the external resource supposed to be working on.
-         * @return  the specified deviceId.
+         * @return the specified deviceId.
          */
         private String getDeviceId(ExternalResource resource) {
             return resource.getId();
@@ -229,7 +269,7 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
                     Map<String, Object> params = new HashMap<String, Object>();
                     params.put(DEVICE, deviceId);
                     params.put(TIME, seconds);
-                    rpcRes = (RpcResult)client.invoke(RESERVE_METHOD, new Object[]{ params }, RpcResult.class);
+                    rpcRes = (RpcResult)client.invoke(RESERVE_METHOD, new Object[]{params}, RpcResult.class);
                 }
             } catch (JsonGenerationException jge) {
                 logger.log(Level.WARNING, MessageFormat.format(
@@ -274,7 +314,7 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
                     Map<String, Object> params = new HashMap<String, Object>();
                     params.put(DEVICE, deviceId);
                     params.put(RESERVE_KEY, key);
-                    rpcRes = (RpcResult)client.invoke(LOCK_METHOD, new Object[] { params }, RpcResult.class);
+                    rpcRes = (RpcResult)client.invoke(LOCK_METHOD, new Object[]{params}, RpcResult.class);
                 }
             } catch (JsonGenerationException jge) {
                 logger.log(Level.WARNING, MessageFormat.format(
@@ -318,7 +358,7 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
                     Map<String, Object> params = new HashMap<String, Object>();
                     params.put(DEVICE, deviceId);
                     params.put(RESERVE_KEY, key);
-                    rpcRes = (RpcResult)client.invoke(RELEASE_METHOD, new Object[] { params }, RpcResult.class);
+                    rpcRes = (RpcResult)client.invoke(RELEASE_METHOD, new Object[]{params}, RpcResult.class);
                 }
             } catch (JsonGenerationException jge) {
                 logger.log(Level.WARNING, MessageFormat.format(
@@ -351,6 +391,7 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
 
         /**
          * convert from the {@link RpcResult} to the {@link StashResult}.
+         *
          * @param rpcResult the specified {@link RpcResult}
          * @return the {@link StashResult}
          */
@@ -367,6 +408,7 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
 
         /**
          * this is the rpc call result class.
+         *
          * @author Leimeng Zhang
          */
         static class RpcResult {
@@ -380,6 +422,7 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
 
             /**
              * the rpc call status.
+             *
              * @return the status of the rpc call. possible values are : OK and NO.
              */
             public Status getStatus() {
@@ -388,6 +431,7 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
 
             /**
              * set value for the response status.
+             *
              * @param status the status of response.
              */
             public void setStatus(Status status) {
@@ -396,7 +440,8 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
 
             /**
              * the reserved key returned by the reserve call.
-             * @return  the reserved key which can used to lock a device.
+             *
+             * @return the reserved key which can used to lock a device.
              */
             public String getReservekey() {
                 return reservekey;
@@ -404,6 +449,7 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
 
             /**
              * set value for the reserved key.
+             *
              * @param reservekey the reserved key of response.
              */
             public void setReservekey(String reservekey) {
@@ -412,6 +458,7 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
 
             /**
              * the status code specified by the protocol.
+             *
              * @return the status code of response.
              */
             public int getCode() {
@@ -420,6 +467,7 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
 
             /**
              * set value for the status code.
+             *
              * @param code the call status.
              */
             public void setCode(int code) {
@@ -428,6 +476,7 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
 
             /**
              * the message of response.
+             *
              * @return the message returned from call.
              */
             public String getMessage() {
@@ -436,6 +485,7 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
 
             /**
              * set message of the response.
+             *
              * @param message the message of the response.
              */
             public void setMessage(String message) {
@@ -444,7 +494,8 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
 
             /**
              * the offset of local timezone.
-             * @return  the offset of local timezone.
+             *
+             * @return the offset of local timezone.
              */
             public int getTimezone() {
                 return timezone;
@@ -452,6 +503,7 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
 
             /**
              * set the timezone.
+             *
              * @param timezone timezone.
              */
             public void setTimezone(int timezone) {
@@ -460,7 +512,8 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
 
             /**
              * the time in ms unit.
-             * @return  the time in ms unit.
+             *
+             * @return the time in ms unit.
              */
             public long getTime() {
                 return time;
@@ -468,6 +521,7 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
 
             /**
              * set the time.
+             *
              * @param time the time in ms unit.
              */
             public void setTime(long time) {
@@ -476,7 +530,8 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
 
             /**
              * the iso time of the time value.
-             * @return  the iso time of the time.
+             *
+             * @return the iso time of the time.
              */
             public String getIsotime() {
                 return isotime;
@@ -484,7 +539,8 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
 
             /**
              * set the iso time.
-             * @param isotime   the iso time of the time.
+             *
+             * @param isotime the iso time of the time.
              */
             public void setIsotime(String isotime) {
                 this.isotime = isotime;
