@@ -87,7 +87,7 @@ public class ExternalResourceHttpCommands implements RootAction {
             @QueryParameter(value = "node", required = true) final String node,
             @QueryParameter(value = "id", required = true) final String id,
             StaplerResponse response) throws IOException {
-        doIt(node, id, true, response);
+        doEnableDisable(node, id, true, response);
     }
 
     /**
@@ -105,11 +105,12 @@ public class ExternalResourceHttpCommands implements RootAction {
             @QueryParameter(value = "node", required = true) final String node,
             @QueryParameter(value = "id", required = true) final String id,
             StaplerResponse response) throws IOException {
-        doIt(node, id, false, response);
+        doEnableDisable(node, id, false, response);
     }
 
     /**
      * Does the enable/disable.
+     *
      * @param node the node where the resource is located.
      * @param id the id of the resource.
      * @param enable true to enable, false to disable.
@@ -119,12 +120,11 @@ public class ExternalResourceHttpCommands implements RootAction {
      * @see #doDisable(String, String, org.kohsuke.stapler.StaplerResponse)
      * @see ExternalResource#doEnable(boolean)
      */
-    private void doIt(final String node, final String id, boolean enable, StaplerResponse response)
+    private void doEnableDisable(final String node, final String id, final boolean enable, StaplerResponse response)
             throws IOException {
-        Node theNode = Hudson.getInstance().getNode(node);
-        if (node != null) {
-            ExternalResource resource = AvailabilityFilter.getInstance().getExternalResourceById(theNode, id);
-            if (resource != null) {
+        Something something = new Something() {
+            @Override
+            public void doIt(ExternalResource resource, StaplerResponse response) throws IOException {
                 try {
                     resource.doEnable(enable);
                     sendOk(response);
@@ -133,6 +133,31 @@ public class ExternalResourceHttpCommands implements RootAction {
                     sendResponse(Type.warning, 0, "Warning",
                             "Failed to save the changes to disk, but the resource state has changed.", response);
                 }
+            }
+        };
+        doSomething(node, id, something, response);
+    }
+
+    /**
+     * Does something with an external resource.
+     *
+     * @param node the node where the resource is located.
+     * @param id the id of the resource.
+     * @param something the actual Operation to perform.
+     * @param response the response handle to write to.
+     * @throws IOException if so.
+     * @see #doEnable(String, String, org.kohsuke.stapler.StaplerResponse)
+     * @see #doDisable(String, String, org.kohsuke.stapler.StaplerResponse)
+     * @see ExternalResource#doEnable(boolean)
+     * @see Something
+     */
+    private void doSomething(final String node, final String id, Something something, StaplerResponse response)
+            throws IOException {
+        Node theNode = Hudson.getInstance().getNode(node);
+        if (node != null) {
+            ExternalResource resource = AvailabilityFilter.getInstance().getExternalResourceById(theNode, id);
+            if (resource != null) {
+                something.doIt(resource, response);
             } else {
                 CliResponse.sendError(CliUtils.Status.ERR_NO_METADATA,
                         "No resource with id " + id + " exists on this node.", response);
@@ -142,4 +167,23 @@ public class ExternalResourceHttpCommands implements RootAction {
                     "No node with name " + node + " exists on this Jenkins server.", response);
         }
     }
+
+    /**
+     * Interface for performing an action on an {@link ExternalResource}.
+     * It is fed to the method
+     * {@link ExternalResourceHttpCommands#
+     *             doSomething(String, String, ExternalResourceHttpCommands.Something, StaplerResponse)}
+     * so that all commands on a particular resource can have a uniform behaviour.
+     */
+    private interface Something {
+        /**
+         * Performs the intended action on the resource.
+         *
+         * @param resource the resource to perform the action on.
+         * @param response the response handle to send an eventual ok or specific error on.
+         * @throws IOException if any response failed to be sent.
+         */
+        void doIt(ExternalResource resource, StaplerResponse response) throws IOException;
+    }
+
 }
