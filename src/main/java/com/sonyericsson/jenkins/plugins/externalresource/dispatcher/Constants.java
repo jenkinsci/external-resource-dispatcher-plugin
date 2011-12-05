@@ -113,6 +113,31 @@ public final class Constants {
      */
     public static final String JSON_ATTR_SLAVE_ISO_TIME = "slave-iso-time";
 
+
+    /**
+     * The path to the parent node where the locked external resource should be placed.
+     */
+    public static final String[] BUILD_LOCKED_RESOURCE_PARENT_PATH = {"external-resources"};
+
+    /**
+     * The name of the locked external resource when it is placed in its parent node.
+     */
+    public static final String BUILD_LOCKED_RESOURCE_NAME = "locked";
+
+    /**
+     * The full path to the locked resource for a buid.
+     * Constructed by {@link #BUILD_LOCKED_RESOURCE_PARENT_PATH} + {@link #BUILD_LOCKED_RESOURCE_NAME}.
+     */
+    public static final String[] BUILD_LOCKED_RESOURCE_PATH;
+
+    static {
+        BUILD_LOCKED_RESOURCE_PATH = new String[BUILD_LOCKED_RESOURCE_PARENT_PATH.length + 1];
+        System.arraycopy(BUILD_LOCKED_RESOURCE_PARENT_PATH, 0,
+                BUILD_LOCKED_RESOURCE_PATH, 0, BUILD_LOCKED_RESOURCE_PARENT_PATH.length);
+        BUILD_LOCKED_RESOURCE_PATH[BUILD_LOCKED_RESOURCE_PARENT_PATH.length] =
+                BUILD_LOCKED_RESOURCE_NAME;
+    }
+
     /**
      * Utility Constructor.
      */
