@@ -61,6 +61,7 @@ public class PluginImplHudsonTest extends HudsonTestCase {
         config.put(PluginImpl.FORM_NAME_RESERVE_TIME, PluginImpl.getInstance().getDefaultReserveTime());
         config.put(PluginImpl.FORM_NAME_MANAGER,
                 ExternalResourceManager.DeviceMonitorExternalResourceManager.class.getName());
+        config.put(PluginImpl.FORM_NAME_ADMIN_FILE, "/tmp/notify.csv");
         PluginImpl.getInstance().configure(null, config);
 
         ExternalResourceManager expected = Hudson.getInstance().getExtensionList(ExternalResourceManager.class)

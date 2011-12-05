@@ -22,5 +22,8 @@
                                  (empty it.getManager() and index eq 0)}"/><br/>
             </j:forEach>
         </f:entry>
+        <f:entry title="${%Admin Notifier File:}">
+            <f:textbox name="adminNotifierFile" default="${descriptor.adminNotifierFile()}" value="${it.adminNotifierFile}" field="adminNotifierFile"/>
+        </f:entry>
     </f:section>
 </j:jelly>

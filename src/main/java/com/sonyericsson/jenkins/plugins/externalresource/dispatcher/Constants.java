@@ -112,6 +112,10 @@ public final class Constants {
      * JSON attribute for {@link com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.Lease#slaveIsoTime}.
      */
     public static final String JSON_ATTR_SLAVE_ISO_TIME = "slave-iso-time";
+    /**
+     * default admin notifier file.
+     */
+    public static final String DEFAULT_ADMIN_NOTIFIER_FILE = "adminNotifier/notify.csv";
 
 
     /**

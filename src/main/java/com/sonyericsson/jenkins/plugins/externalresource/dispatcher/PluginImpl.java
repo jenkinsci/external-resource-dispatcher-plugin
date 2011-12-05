@@ -81,6 +81,11 @@ public class PluginImpl extends Plugin {
     protected static final String FORM_NAME_RESERVE_TIME = "reserveTime";
 
     /**
+     * Form field name for admin notifier file on the config page.
+     */
+    protected static final String FORM_NAME_ADMIN_FILE = "adminNotifierFile";
+
+    /**
      * Release Key, used by releaseAll().
      */
     private String releaseKey;
@@ -95,6 +100,11 @@ public class PluginImpl extends Plugin {
     private String managerClass;
 
     private int reserveTime = Constants.DEFAULT_RESERVE_TIME;
+
+    /**
+     * admin notifier file.  {@link AdminNotifier}
+     */
+    private String adminNotifierFile;
 
     /**
      * Empty constructor, method getInstance() brings the singleton instance.
@@ -155,6 +165,7 @@ public class PluginImpl extends Plugin {
         this.managerClass = dynamic.getClass().getName();
 
         this.reserveTime = formData.getInt(FORM_NAME_RESERVE_TIME);
+        this.adminNotifierFile = formData.getString(FORM_NAME_ADMIN_FILE);
 
         logger.fine("Saving config.");
         save();
@@ -250,5 +261,14 @@ public class PluginImpl extends Plugin {
     @SuppressWarnings("unused")
     public int getDefaultReserveTime() {
         return Constants.DEFAULT_RESERVE_TIME;
+    }
+
+    /**
+     * Retrieves the file name for statistics log used by {@link AdminNotifier}.
+     *
+     * @return the adminNotifierFile.
+     */
+    public String getAdminNotifierFile() {
+        return adminNotifierFile;
     }
 }
