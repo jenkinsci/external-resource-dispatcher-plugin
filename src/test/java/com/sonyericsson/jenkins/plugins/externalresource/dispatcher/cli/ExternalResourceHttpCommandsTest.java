@@ -47,6 +47,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -147,6 +148,32 @@ public class ExternalResourceHttpCommandsTest {
         expectedJson.put("message", "OK");
 
         assertFalse(resource.isEnabled());
+        verify(container).save();
+
+        verify(out).print(eq(expectedJson.toString()));
+    }
+
+    /**
+     * Happy test for
+     * {@link ExternalResourceHttpCommands#doExpire(String, String, org.kohsuke.stapler.StaplerResponse)}.
+     *
+     * @throws Exception if so.
+     */
+    @Test
+    public void testDoExpire() throws Exception {
+        String id = "12345678";
+        ExternalResource resource = new ExternalResource("Temp", "Temp", id,
+                true, Collections.<MetadataValue>emptyList());
+        TreeStructureUtil.addValue(container, resource, "test", "path");
+
+        action.doExpireReservation("testNode", id, response);
+
+        JSONObject expectedJson = new JSONObject();
+        expectedJson.put("type", "ok");
+        expectedJson.put("errorCode", 0);
+        expectedJson.put("message", "OK");
+
+        assertNull(resource.getReserved());
         verify(container).save();
 
         verify(out).print(eq(expectedJson.toString()));

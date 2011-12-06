@@ -25,6 +25,7 @@ package com.sonyericsson.jenkins.plugins.externalresource.dispatcher.cli;
 
 import com.sonyericsson.hudson.plugins.metadata.cli.CliResponse;
 import com.sonyericsson.hudson.plugins.metadata.cli.CliUtils;
+import com.sonyericsson.hudson.plugins.metadata.cli.CliResponse.Type;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Constants;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.AvailabilityFilter;
@@ -39,7 +40,6 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.sonyericsson.hudson.plugins.metadata.cli.CliResponse.Type;
 import static com.sonyericsson.hudson.plugins.metadata.cli.CliResponse.sendOk;
 import static com.sonyericsson.hudson.plugins.metadata.cli.CliResponse.sendResponse;
 
@@ -139,6 +139,37 @@ public class ExternalResourceHttpCommands implements RootAction {
     }
 
     /**
+     * Make an {@link ExternalResource} reservation expired with the id on a given node. The JSON output is similar to
+     * the metadata commands.
+     *
+     * @param node     the node where the resource is located.
+     * @param id       the id of the resource.
+     * @param response the response handle to write to.
+     * @throws IOException if so.
+     * @see CliResponse
+     */
+    @SuppressWarnings("unused")
+    public void doExpireReservation(
+            @QueryParameter(value = "node", required = true) final String node,
+            @QueryParameter(value = "id", required = true) final String id,
+        StaplerResponse response) throws IOException {
+        Something something = new Something() {
+            @Override
+            public void doIt(ExternalResource resource, StaplerResponse response) throws IOException {
+                try {
+                    resource.doExpireReservation();
+                    sendOk(response);
+                } catch (IOException e) {
+                    logger.log(Level.WARNING, "Probably failed to save the node config to disk! ", e);
+                    sendResponse(Type.warning, 0, "Warning",
+                            "Failed to save the changes to disk, but the resource state has changed.", response);
+                }
+            }
+        };
+        doSomething(node, id, something, response);
+    }
+
+    /**
      * Does something with an external resource.
      *
      * @param node the node where the resource is located.
@@ -154,7 +185,7 @@ public class ExternalResourceHttpCommands implements RootAction {
     private void doSomething(final String node, final String id, Something something, StaplerResponse response)
             throws IOException {
         Node theNode = Hudson.getInstance().getNode(node);
-        if (node != null) {
+        if (theNode != null) {
             ExternalResource resource = AvailabilityFilter.getInstance().getExternalResourceById(theNode, id);
             if (resource != null) {
                 something.doIt(resource, response);

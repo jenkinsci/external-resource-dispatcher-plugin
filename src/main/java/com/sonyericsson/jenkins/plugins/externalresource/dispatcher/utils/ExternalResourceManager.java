@@ -161,7 +161,8 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
             public void run() {
                 try {
                     logger.fine("Reservation timeout.");
-                    ErCliUtils.unSetReservation(node, id);
+                    ExternalResource er = ErCliUtils.findExternalResource(node, id);
+                    er.doExpireReservation();
                 } catch (CmdLineException e) {
                     logger.log(Level.WARNING, "Failed to timeout a reservation of " + id + " on node " + node + "!", e);
                 } catch (IOException e) {

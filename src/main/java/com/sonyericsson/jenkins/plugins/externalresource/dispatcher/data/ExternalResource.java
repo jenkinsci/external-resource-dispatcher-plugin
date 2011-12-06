@@ -246,6 +246,18 @@ public class ExternalResource extends TreeNodeMetadataValue {
     }
 
     /**
+     * Make this resource reservation expired and save the Node's config.
+     *
+     * @throws IOException if so during save.
+     * @see com.sonyericsson.hudson.plugins.metadata.model.MetadataContainer#save()
+     * @see #setReserved(com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashInfo)
+     */
+    public synchronized void doExpireReservation() throws IOException {
+        setReserved(null);
+        getContainer().save();
+    }
+
+    /**
      * If this resource is available or not. I.e. it has neither a {@link #getReserved()} nor a {@link #getLocked()}
      * set. Not counting if {@link #isEnabled()} is true or not.
      *

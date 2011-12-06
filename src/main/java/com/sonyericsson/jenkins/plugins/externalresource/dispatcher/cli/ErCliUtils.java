@@ -29,31 +29,12 @@ import hudson.model.Hudson;
 import hudson.model.Node;
 import org.kohsuke.args4j.CmdLineException;
 
-import java.io.IOException;
-
 /**
  * Common utility functions for Cli Commands.
  *
  * @author Robert Sandell &lt;robert.sandell@sonyericsson.com&gt;
  */
 public final class ErCliUtils {
-
-    /**
-     * Removes the reservation info from the given resource. Should be called when a reservation has timed out.
-     *
-     * @param node the name of the node.
-     * @param id   the id of the resource on that node.
-     * @throws CmdLineException if so (see {@link #findExternalResource(String, String)}).
-     * @throws IOException      if {@link hudson.model.Hudson#save()} fails.
-     * @see #findExternalResource(String, String)
-     */
-    public static void unSetReservation(String node, String id) throws CmdLineException, IOException {
-        ExternalResource resource = findExternalResource(node, id);
-        resource.setReserved(null);
-        if (Hudson.getInstance() != null) { //For testability.
-            Hudson.getInstance().save();
-        }
-    }
 
     /**
      * Finds the {@link ExternalResource} on the node with the given id.
