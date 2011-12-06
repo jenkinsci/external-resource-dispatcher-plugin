@@ -168,7 +168,7 @@ public class SelectionCriteria extends JobProperty<AbstractProject<?, ?>> {
         MetadataBuildAction metadataBuildAction = build.getAction(MetadataBuildAction.class);
         if (metadataBuildAction == null) {
             metadataBuildAction = new MetadataBuildAction(build);
-            build.addAction(action);
+            build.addAction(metadataBuildAction);
         }
         locked.setName(BUILD_LOCKED_RESOURCE_NAME);
         TreeNodeMetadataValue lockedTree = TreeStructureUtil.createPath(locked, BUILD_LOCKED_RESOURCE_PARENT_PATH);

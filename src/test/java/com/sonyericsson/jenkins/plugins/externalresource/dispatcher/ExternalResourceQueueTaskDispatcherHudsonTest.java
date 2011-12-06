@@ -23,6 +23,7 @@
  */
 package com.sonyericsson.jenkins.plugins.externalresource.dispatcher;
 
+import com.sonyericsson.hudson.plugins.metadata.model.MetadataBuildAction;
 import com.sonyericsson.hudson.plugins.metadata.model.MetadataNodeProperty;
 import com.sonyericsson.hudson.plugins.metadata.model.values.MetadataValue;
 import com.sonyericsson.hudson.plugins.metadata.model.values.TreeStructureUtil;
@@ -31,11 +32,15 @@ import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.Reserve
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashInfo;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.AbstractDeviceSelection;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.StringDeviceSelection;
+import hudson.Launcher;
+import hudson.model.AbstractBuild;
+import hudson.model.BuildListener;
 import hudson.model.Cause;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.labels.LabelAtom;
 import hudson.slaves.DumbSlave;
+import hudson.tasks.Builder;
 import hudson.tasks.Mailer;
 import hudson.tasks.Shell;
 import org.jvnet.hudson.test.HudsonTestCase;
@@ -102,6 +107,46 @@ public class ExternalResourceQueueTaskDispatcherHudsonTest extends HudsonTestCas
         assertTrue(reservation.getStashedBy().contains(project.getName()));
         ReservedExternalResourceAction action = future.get().getAction(ReservedExternalResourceAction.class);
         assertNotNull(action);
+    }
+    /**
+     * Tests that a resource is locked as it should.
+     *
+     * @throws Exception if so.
+     */
+    public void testLock() throws Exception {
+        FreeStyleProject project = this.createFreeStyleProject("testProject");
+        project.setAssignedLabel(new LabelAtom("TEST"));
+        AbstractDeviceSelection selection = new StringDeviceSelection("is.matching", "yes");
+        project.addProperty(new SelectionCriteria(Collections.singletonList(selection)));
+        LockBuilder builder = new LockBuilder();
+        project.getBuildersList().add(builder);
+        FreeStyleBuild build = this.buildAndAssertSuccess(project);
+        assertNotNull(builder.builderResource);
+        assertEquals(builder.builderResource.getId(), resource.getId());
+        assertEquals(builder.stashedBy, build.getUrl());
+    }
 
+    /**
+     * Builder that makes sure that it has a locked resource during the build.
+     */
+    protected static class LockBuilder extends Builder {
+        private ExternalResource builderResource;
+        private String stashedBy;
+        @Override
+        public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
+            MetadataBuildAction action = build.getAction(MetadataBuildAction.class);
+            if (action == null) {
+                listener.error("No MetadataBuildAction in the build.");
+                return false;
+            }
+            MetadataValue value = TreeStructureUtil.getPath(action, Constants.BUILD_LOCKED_RESOURCE_PATH);
+            if (value == null || !(value instanceof ExternalResource)) {
+                listener.error("No locked resource in the build.");
+                return false;
+            }
+            builderResource = (ExternalResource)value;
+            stashedBy = builderResource.getLocked().getStashedBy();
+         return true;
+        }
     }
 }
