@@ -31,7 +31,16 @@ import com.sonyericsson.hudson.plugins.metadata.model.values.MetadataValue;
 import com.sonyericsson.hudson.plugins.metadata.model.values.StringMetadataValue;
 import com.sonyericsson.hudson.plugins.metadata.model.values.TreeNodeMetadataValue;
 import com.sonyericsson.hudson.plugins.metadata.model.values.TreeStructureUtil;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.SelectionCriteria;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.AbstractDeviceSelection;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.StringDeviceSelection;
+import hudson.EnvVars;
+import hudson.Launcher;
+import hudson.model.AbstractBuild;
 import hudson.model.Action;
+import hudson.model.BuildListener;
+import hudson.model.FreeStyleBuild;
+import hudson.model.FreeStyleProject;
 import hudson.model.Hudson;
 import hudson.model.labels.LabelAtom;
 import hudson.slaves.DumbSlave;
@@ -39,10 +48,13 @@ import hudson.tasks.Mailer;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.jvnet.hudson.test.HudsonTestCase;
+import org.jvnet.hudson.test.TestBuilder;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
 import javax.servlet.ServletOutputStream;
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -102,9 +114,8 @@ public class ExternalResourceJenkinsTest extends HudsonTestCase {
     }
 
     /**
-     * Tests that an {@link ExternalResource} is correctly replaced by the metadata update command.
-     * In essence checks that
-     * {@link ExternalResource#replacementOf(com.sonyericsson.hudson.plugins.metadata.model.values.MetadataValue)}
+     * Tests that an {@link ExternalResource} is correctly replaced by the metadata update command. In essence checks
+     * that {@link ExternalResource#replacementOf(com.sonyericsson.hudson.plugins.metadata.model.values.MetadataValue)}
      * is correctly implemented.
      *
      * @throws Exception if so.
@@ -158,7 +169,44 @@ public class ExternalResourceJenkinsTest extends HudsonTestCase {
     }
 
     /**
+     * Tests that the environment variables for the locked resource is available to the build.
+     *
+     * @throws Exception if so.
+     */
+    public void testLockedResourceEnvironment() throws Exception {
+        setUpSlave();
+        TreeStructureUtil.addValue(resource, "USB", "the type of connector", "connector", "type");
+        FreeStyleProject project = createFreeStyleProject();
+        project.setAssignedLabel(new LabelAtom("TEST"));
+        StringDeviceSelection selection = new StringDeviceSelection("is.matching", "yes");
+        List<AbstractDeviceSelection> list = new LinkedList<AbstractDeviceSelection>();
+        list.add(selection);
+        SelectionCriteria selectionCriteria = new SelectionCriteria(true, list);
+        project.addProperty(selectionCriteria);
+
+        final HashMap<Object, String> environment = new HashMap<Object, String>();
+
+        project.getBuildersList().add(new TestBuilder() {
+            @Override
+            public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
+                    throws InterruptedException, IOException {
+                EnvVars vars = build.getEnvironment(listener);
+                environment.putAll(vars);
+                return true;
+            }
+        });
+
+        FreeStyleBuild build = this.buildAndAssertSuccess(project);
+        assertNotNull(build);
+
+        assertEquals("USB", environment.get("MD_EXTERNAL_RESOURCES_LOCKED_CONNECTOR_TYPE"));
+        assertEquals("yes", environment.get("MD_EXTERNAL_RESOURCES_LOCKED_IS_MATCHING"));
+        assertEquals(resource.getId(), environment.get("MD_EXTERNAL_RESOURCES_LOCKED_ID"));
+    }
+
+    /**
      * Finds the metadata cli action attached to Jenkins.
+     *
      * @return the root-action or null if something is wrong.
      */
     private HttpCliRootAction getHttpCliRootAction() {
@@ -171,8 +219,7 @@ public class ExternalResourceJenkinsTest extends HudsonTestCase {
     }
 
     /**
-     * Setup method for some of the tests.
-     * It creates a slave with an attached external resource.
+     * Setup method for some of the tests. It creates a slave with an attached external resource.
      *
      * @throws Exception if so.
      */
