@@ -34,6 +34,7 @@ import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Constants;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Messages;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.PluginImpl;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.model.Descriptor;
@@ -308,6 +309,16 @@ public class ExternalResource extends TreeNodeMetadataValue {
     @Override
     public Descriptor<AbstractMetadataValue> getDescriptor() {
         return Hudson.getInstance().getDescriptorByType(ExternalResourceDescriptor.class);
+    }
+
+    @Override
+    public void addEnvironmentVariables(EnvVars variables, boolean exposeAll) {
+        super.addEnvironmentVariables(variables, exposeAll);
+        if (isExposedToEnvironment() || exposeAll) {
+            variables.put(getEnvironmentName()
+                    + com.sonyericsson.hudson.plugins.metadata.Constants.ENVIRONMENT_SEPARATOR + "ID",
+                    getId());
+        }
     }
 
     @Override
