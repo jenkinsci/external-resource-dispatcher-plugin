@@ -64,17 +64,17 @@ public class ExternalResourceManagerTest {
     /**
      * the method name of reserve.
      */
-    private static final String RESERVE_METHOD = "DeviceMonitor.Device.Reserve";
+    private static final String RESERVE_METHOD = "DeviceMonitor.Devices.Reserve";
 
     /**
      * the method of lock.
      */
-    private static final String LOCK_METHOD = "DeviceMonitor.Device.Lock";
+    private static final String LOCK_METHOD = "DeviceMonitor.Devices.Lock";
 
     /**
      * the method of release.
      */
-    private static final String RELEASE_METHOD = "DeviceMonitor.Device.Release";
+    private static final String RELEASE_METHOD = "DeviceMonitor.Devices.Release";
 
     /**
      * test reserve method.

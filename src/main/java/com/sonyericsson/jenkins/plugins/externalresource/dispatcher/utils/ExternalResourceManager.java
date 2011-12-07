@@ -185,17 +185,17 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
         /**
          * the method name of reserve.
          */
-        private static final String RESERVE_METHOD = "DeviceMonitor.Device.Reserve";
+        private static final String RESERVE_METHOD = "DeviceMonitor.Devices.Reserve";
 
         /**
          * the method of lock.
          */
-        private static final String LOCK_METHOD = "DeviceMonitor.Device.Lock";
+        private static final String LOCK_METHOD = "DeviceMonitor.Devices.Lock";
 
         /**
          * the method of release.
          */
-        private static final String RELEASE_METHOD = "DeviceMonitor.Device.Release";
+        private static final String RELEASE_METHOD = "DeviceMonitor.Devices.Release";
 
         /**
          * the http url template of the RPC call. 0: the host name. 1: the port. 2: the suffix if existed.
