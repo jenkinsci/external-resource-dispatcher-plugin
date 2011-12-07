@@ -65,14 +65,26 @@ import static com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Const
 public class SelectionCriteria extends JobProperty<AbstractProject<?, ?>> {
 
     private static final Logger logger = Logger.getLogger(SelectionCriteria.class.getName());
+    private boolean selectionEnabled;
     private List<AbstractDeviceSelection> deviceSelectionList;
 
     /**
      * Standard DataBound Constructor.
      *
+     * @param selectionEnabled if true, selection is checked
      * @param deviceSelectionList the selection list
      */
     @DataBoundConstructor
+    public SelectionCriteria(boolean selectionEnabled, List<AbstractDeviceSelection> deviceSelectionList) {
+        this.selectionEnabled = selectionEnabled;
+        this.deviceSelectionList = deviceSelectionList;
+    }
+
+    /**
+     * Standard Constructor.
+     *
+     * @param deviceSelectionList the selection list
+     */
     public SelectionCriteria(List<AbstractDeviceSelection> deviceSelectionList) {
         this.deviceSelectionList = deviceSelectionList;
     }
@@ -87,6 +99,15 @@ public class SelectionCriteria extends JobProperty<AbstractProject<?, ?>> {
             deviceSelectionList = new LinkedList<AbstractDeviceSelection>();
         }
         return deviceSelectionList;
+    }
+
+    /**
+     * SelectionEnabled value.
+     *
+     * @return true if selection is enabled
+     */
+    public boolean getSelectionEnabled() {
+        return selectionEnabled;
     }
 
     /**
