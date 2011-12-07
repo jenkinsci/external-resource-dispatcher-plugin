@@ -73,7 +73,12 @@ public class ExternalResource extends TreeNodeMetadataValue {
     private String id;
     private StashInfo reserved;
     private StashInfo locked;
-    private boolean enabled = true;
+    /**
+     * For access control purposes enabled can internally have 3 values; not set, true or false.
+     * All logic related to enabled should handle "not set" as enabled.
+     * @see #isEnabled()
+     */
+    private Boolean enabled;
 
     /**
      * Standard DataBound Constructor.
@@ -86,7 +91,7 @@ public class ExternalResource extends TreeNodeMetadataValue {
      * @see TreeNodeMetadataValue#TreeNodeMetadataValue(String, String, java.util.List)
      */
     @DataBoundConstructor
-    public ExternalResource(String name, String description, String id, boolean enabled, List<MetadataValue> children) {
+    public ExternalResource(String name, String description, String id, Boolean enabled, List<MetadataValue> children) {
         super(name, description, children);
         this.id = id;
         this.enabled = enabled;
@@ -202,7 +207,11 @@ public class ExternalResource extends TreeNodeMetadataValue {
      * @return enabled or not.
      */
     public boolean isEnabled() {
-        return enabled;
+        if (enabled == null) {
+            return true;
+        } else {
+            return enabled;
+        }
     }
 
     /**
@@ -302,6 +311,31 @@ public class ExternalResource extends TreeNodeMetadataValue {
     }
 
     @Override
+    public boolean requiresReplacement() {
+        return true;
+    }
+
+    @Override
+    public void replacementOf(MetadataValue old) {
+        super.replacementOf(old);
+        if (old instanceof ExternalResource) {
+            ExternalResource other = (ExternalResource)old;
+            if (reserved == null) {
+                reserved = other.reserved;
+            }
+            if (locked == null) {
+                locked = other.locked;
+            }
+            if (enabled == null) {
+                enabled = other.enabled;
+            }
+            if (id == null) {
+                id = other.id;
+            }
+        }
+    }
+
+    @Override
     public ExternalResource clone() throws CloneNotSupportedException {
         ExternalResource other = (ExternalResource)super.clone();
         if (reserved != null) {
@@ -317,7 +351,7 @@ public class ExternalResource extends TreeNodeMetadataValue {
     public JSONObject toJson() {
         JSONObject json = super.toJson();
         json.put(JSON_ATTR_ID, id);
-        json.put(JSON_ATTR_ENABLED, enabled);
+        json.put(JSON_ATTR_ENABLED, isEnabled());
         if (reserved != null) {
             json.put(JSON_ATTR_RESERVED, reserved.toJson());
         } else {

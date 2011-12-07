@@ -197,6 +197,36 @@ public class ExternalResourceTest {
                 TreeStructureUtil.getPath(other, "some", "path"));
         assertEquals(TreeStructureUtil.getPath(resource, "some", "path").getValue(),
                 TreeStructureUtil.getPath(other, "some", "path").getValue());
+        assertTrue(other.isEnabled());
 
+    }
+
+    /**
+     * Tests {@link ExternalResource#isEnabled()} when enables is set to null (not set).
+     */
+    @Test
+    public void testIsEnabledNotSet() {
+        ExternalResource resource = new ExternalResource("name", "description", "id", null, null);
+        assertTrue(resource.isEnabled());
+    }
+
+    /**
+     * Tests {@link ExternalResource#isEnabled()} when enables is set to false.
+     */
+    @Test
+    public void testIsEnabledFalse() {
+        ExternalResource resource = new ExternalResource("name", "description", "id", null, null);
+        resource.setEnabled(false);
+        assertFalse(resource.isEnabled());
+    }
+
+    /**
+     * Tests {@link ExternalResource#isEnabled()} when enables is set to true.
+     */
+    @Test
+    public void testIsEnabledTrue() {
+        ExternalResource resource = new ExternalResource("name", "description", "id", null, null);
+        resource.setEnabled(true);
+        assertTrue(resource.isEnabled());
     }
 }
