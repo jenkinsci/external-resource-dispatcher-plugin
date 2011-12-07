@@ -23,10 +23,10 @@
   -->
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-    <f:section title="${%Device Selection}">
-        <f:entry title="${%Simple Selection}">
-            <f:hetero-list descriptors="${descriptor.getDeviceSelectionDescriptors()}" items="${instance.deviceSelectionList}"
-                           name="deviceSelectionList" hasHeader="true"/>
-        </f:entry>
-    </f:section>
+    <f:optionalBlock name="selectionEnabled" inline="true" title="${%Device Selection Criteria}" checked="${instance.selectionEnabled}">
+	    <f:entry title="${%Simple Selection}">
+	            <f:hetero-list descriptors="${descriptor.getDeviceSelectionDescriptors()}" items="${instance.deviceSelectionList}"
+	                           name="deviceSelectionList" hasHeader="true" addCaption="${%Add Selector}"/>
+	    </f:entry>
+    </f:optionalBlock>
 </j:jelly>
