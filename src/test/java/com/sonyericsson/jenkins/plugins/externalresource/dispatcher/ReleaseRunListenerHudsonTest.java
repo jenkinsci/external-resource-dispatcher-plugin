@@ -75,7 +75,6 @@ public class ReleaseRunListenerHudsonTest extends HudsonTestCase {
      */
     public void testOnCompleted() throws Exception {
         FreeStyleProject project = this.createFreeStyleProject("testProject");
-        Thread.sleep(1000); //TODO remove sleep when race condition is found and fixed.
         project.setAssignedLabel(new LabelAtom("TEST"));
         project.getBuildersList().add(new Shell("sleep 2"));
         AbstractDeviceSelection selection = new StringDeviceSelection("is.matching", "yes");
