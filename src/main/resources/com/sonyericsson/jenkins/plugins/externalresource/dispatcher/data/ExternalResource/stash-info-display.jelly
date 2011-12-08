@@ -40,7 +40,7 @@
             <tr>
                 <th align="left" valign="top" rowspan="2">${%Expires}</th>
                 <td>
-                    <i:formatDate value="${it.lease.serverTime}" type="both" dateStyle="medium" timeStyle="full"/>
+                    <i:formatDate value="${it.lease.serverTime.getTime()}" type="both" dateStyle="medium" timeStyle="full"/>
                 </td>
             </tr>
             <tr>

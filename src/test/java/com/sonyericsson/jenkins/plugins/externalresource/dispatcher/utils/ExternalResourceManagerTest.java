@@ -98,7 +98,7 @@ public class ExternalResourceManagerTest {
         long now = new Date().getTime();
         String isoTime = "China Beijing";
         result.setCode(code);
-        result.setReservekey(reserveKey);
+        result.setKey(reserveKey);
         result.setMessage(message);
         result.setStatus(Status.OK);
         result.setIsotime(isoTime);
@@ -148,14 +148,13 @@ public class ExternalResourceManagerTest {
 
         RpcResult result = new RpcResult();
         result.setCode(code);
-        result.setReservekey(reserveKey);
+        result.setKey(reserveKey);
         result.setMessage(message);
         result.setStatus(Status.OK);
 
-        String key = "mockreservekey";
         Map<String, Object> paramMap = new HashMap<String, Object>();
         paramMap.put("device", externalResourceId);
-        paramMap.put("reservekey", key);
+        paramMap.put("key", reserveKey);
 
         // mock for reserve.
         mockForOperation(result, new Object[]{paramMap}, nodeName, LOCK_METHOD);
@@ -165,7 +164,7 @@ public class ExternalResourceManagerTest {
 
         ExternalResourceManager rpcCallERM = new ExternalResourceManager.DeviceMonitorExternalResourceManager();
 
-        StashResult sRes = rpcCallERM.lock(n, er, key);
+        StashResult sRes = rpcCallERM.lock(n, er, reserveKey);
 
         assertEquals(code, sRes.getErrorCode());
         assertEquals(message, sRes.getMessage());
@@ -194,14 +193,14 @@ public class ExternalResourceManagerTest {
 
         RpcResult result = new RpcResult();
         result.setCode(code);
-        result.setReservekey(reserveKey);
+        result.setKey(reserveKey);
         result.setMessage(message);
         result.setStatus(Status.OK);
 
         String key = "mockreservekey";
         Map<String, Object> paramMap = new HashMap<String, Object>();
         paramMap.put("device", externalResourceId);
-        paramMap.put("reservekey", key);
+        paramMap.put("key", key);
 
         // mock for reserve.
         mockForOperation(result, new Object[] { paramMap }, nodeName, RELEASE_METHOD);

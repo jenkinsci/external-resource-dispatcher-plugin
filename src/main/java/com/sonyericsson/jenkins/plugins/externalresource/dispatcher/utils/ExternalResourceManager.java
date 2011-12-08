@@ -211,7 +211,7 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
         /**
          * the key of the reservekey parameter in sent json.
          */
-        private static final String RESERVE_KEY = "reservekey";
+        private static final String RESERVE_KEY = "key";
 
         /**
          * the key of the time parameter in sent json.
@@ -345,6 +345,12 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
                         "Can not lock the device {0}.",
                         deviceId), e);
             }
+            // FIX the issue , missing key when release. because the reservekey is not
+            // returned by the lock call. have to give the value here.
+            // Reuse the previous one if null is returned.
+            if (rpcRes != null && rpcRes.getKey() == null) {
+                rpcRes.setKey(key);
+            }
             return convert(rpcRes);
         }
 
@@ -402,7 +408,7 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
             if (null != rpcResult) {
                 lease = Lease.createInstance(rpcResult.getTime(), rpcResult.getTimezone(), rpcResult.getIsotime());
                 targetResult = new StashResult(rpcResult.getCode(), rpcResult.getMessage(),
-                        rpcResult.getReservekey(), rpcResult.getStatus(), lease);
+                        rpcResult.getKey(), rpcResult.getStatus(), lease);
             }
             return targetResult;
         }
@@ -416,7 +422,7 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
             private Status status;
             private String message;
             private int code;
-            private String reservekey;
+            private String key;
             private int timezone;
             private long time;
             private String isotime;
@@ -444,17 +450,17 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
              *
              * @return the reserved key which can used to lock a device.
              */
-            public String getReservekey() {
-                return reservekey;
+            public String getKey() {
+                return key;
             }
 
             /**
              * set value for the reserved key.
              *
-             * @param reservekey the reserved key of response.
+             * @param key the reserved key of response.
              */
-            public void setReservekey(String reservekey) {
-                this.reservekey = reservekey;
+            public void setKey(String key) {
+                this.key = key;
             }
 
             /**
