@@ -138,6 +138,10 @@ public class SelectionCriteria extends JobProperty<AbstractProject<?, ?>> {
     @Override
     public boolean prebuild(AbstractBuild<?, ?> build,
                         BuildListener listener) {
+        if (!getSelectionEnabled()) {
+            logger.log(Level.FINE, "Selection not enabled, continuing");
+            return true;
+        }
         String buildName = build.getFullDisplayName();
         ReservedExternalResourceAction action = build.getAction(ReservedExternalResourceAction.class);
         if (action == null) {

@@ -78,7 +78,8 @@ public class ReleaseRunListenerHudsonTest extends HudsonTestCase {
         project.setAssignedLabel(new LabelAtom("TEST"));
         project.getBuildersList().add(new Shell("sleep 2"));
         AbstractDeviceSelection selection = new StringDeviceSelection("is.matching", "yes");
-        project.addProperty(new SelectionCriteria(Collections.singletonList(selection)));
+        boolean selectionEnabled = true;
+        project.addProperty(new SelectionCriteria(selectionEnabled, Collections.singletonList(selection)));
 
         FreeStyleBuild build = project.scheduleBuild2(0, new Cause.UserCause()).get();
         assertBuildStatusSuccess(build);
