@@ -34,10 +34,10 @@ import com.sonyericsson.hudson.plugins.metadata.model.values.TreeStructureUtil;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.SelectionCriteria;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.AbstractDeviceSelection;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.StringDeviceSelection;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.spec.TestUtils;
 import hudson.EnvVars;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
-import hudson.model.Action;
 import hudson.model.BuildListener;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
@@ -45,7 +45,6 @@ import hudson.model.Hudson;
 import hudson.model.labels.LabelAtom;
 import hudson.slaves.DumbSlave;
 import hudson.tasks.Mailer;
-import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.jvnet.hudson.test.HudsonTestCase;
 import org.jvnet.hudson.test.TestBuilder;
@@ -145,7 +144,7 @@ public class ExternalResourceJenkinsTest extends HudsonTestCase {
         ServletOutputStream out = mock(ServletOutputStream.class);
         when(response.getOutputStream()).thenReturn(out);
 
-        HttpCliRootAction metadataCliAction = getHttpCliRootAction();
+        HttpCliRootAction metadataCliAction = TestUtils.getHttpCliRootAction();
         assertNotNull(metadataCliAction);
 
         metadataCliAction.doUpdate(request, response);
@@ -159,6 +158,7 @@ public class ExternalResourceJenkinsTest extends HudsonTestCase {
         assertTrue(replacedResource.isEnabled());
         assertEquals(notAnyMore, TreeStructureUtil.getPath(replacedResource, "is", "matching").getValue());
         assertEquals(value, TreeStructureUtil.getPath(replacedResource, "some", "other").getValue());
+        assertEquals(2, replacedResource.getChildren().size());
 
         JSONObject expectedJson = new JSONObject();
         expectedJson.put("type", "ok");
@@ -202,20 +202,6 @@ public class ExternalResourceJenkinsTest extends HudsonTestCase {
         assertEquals("USB", environment.get("MD_EXTERNAL_RESOURCES_LOCKED_CONNECTOR_TYPE"));
         assertEquals("yes", environment.get("MD_EXTERNAL_RESOURCES_LOCKED_IS_MATCHING"));
         assertEquals(resource.getId(), environment.get("MD_EXTERNAL_RESOURCES_LOCKED_ID"));
-    }
-
-    /**
-     * Finds the metadata cli action attached to Jenkins.
-     *
-     * @return the root-action or null if something is wrong.
-     */
-    private HttpCliRootAction getHttpCliRootAction() {
-        for (Action a : Jenkins.getInstance().getActions()) {
-            if (a instanceof HttpCliRootAction) {
-                return (HttpCliRootAction)a;
-            }
-        }
-        return null;
     }
 
     /**
