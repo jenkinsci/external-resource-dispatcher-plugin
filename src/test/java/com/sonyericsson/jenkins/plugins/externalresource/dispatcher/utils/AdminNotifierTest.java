@@ -40,8 +40,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.text.MessageFormat;
 
-import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.StringContains.containsString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 /**
@@ -88,7 +89,7 @@ public class AdminNotifierTest {
         AdminNotifier.getInstance().notify(AdminNotifier.MessageType.ERROR,
                 AdminNotifier.OperationType.LOCK, node, er, message);
         String lastLine = getLastLine("/tmp/notify.csv");
-        assertEquals(expectedMessage, lastLine);
+        assertThat(lastLine, containsString(expectedMessage));
         try {
             cleanFile("/tmp/notify.csv");
         } catch (IOException e) {

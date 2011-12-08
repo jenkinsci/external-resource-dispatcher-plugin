@@ -34,6 +34,7 @@ import com.sonyericsson.hudson.plugins.metadata.model.values.TreeStructureUtil;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ReservedExternalResourceAction;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashInfo;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashResult;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.AdminNotifier;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.ExternalResourceManager;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
@@ -143,8 +144,12 @@ public class SelectionCriteria extends JobProperty<AbstractProject<?, ?>> {
             return true;
         }
         String buildName = build.getFullDisplayName();
+        Node node = build.getBuiltOn();
         ReservedExternalResourceAction action = build.getAction(ReservedExternalResourceAction.class);
         if (action == null) {
+            AdminNotifier.getInstance().notify(AdminNotifier.MessageType.ERROR, AdminNotifier.OperationType.RESERVE,
+                    node, null, "No phone chosen even though we have selection criteria, aborting build: "
+                            + buildName);
             logger.log(Level.SEVERE,
                     "No phone chosen even though we have selection criteria, aborting build: [{0}].", buildName);
             listener.getLogger().println(
@@ -154,14 +159,19 @@ public class SelectionCriteria extends JobProperty<AbstractProject<?, ?>> {
         ExternalResource reserved = action.pop();
         StashInfo reservedInfo = reserved.getReserved();
         ExternalResourceManager resourceManager = PluginImpl.getInstance().getManager();
-        Node node = build.getBuiltOn();
+
         //If the phone is not reserved anymore, try to reserve it again.
         //If it cannot be reserved, fail the build.
         if (reservedInfo == null) {
             StashResult result = resourceManager.reserve(node, reserved, PluginImpl.getInstance().getReserveTime());
             if (result == null || !result.isOk()) {
-                logger.severe(Messages.SelectionCriteria_ErrorLocking(reserved.getId()));
-                listener.getLogger().println(Messages.SelectionCriteria_ErrorLocking(reserved.getId()));
+                AdminNotifier.getInstance().notify(AdminNotifier.MessageType.ERROR,
+                        AdminNotifier.OperationType.RESERVE, node, reserved,
+                        "The external resource has been taken by someone else, aborting build: " + buildName);
+                logger.log(Level.SEVERE, "External resource: [{0}] has been taken by someone else, aborting build",
+                        reserved.getId());
+                listener.getLogger().println("External resource: " + reserved.getId()
+                        + " has been taken by someone else, aborting build");
                 return false;
             } else {
                 reservedInfo = new StashInfo(result, build.getUrl());
@@ -170,6 +180,8 @@ public class SelectionCriteria extends JobProperty<AbstractProject<?, ?>> {
         //we have a reserved phone, now lock it.
         StashResult lockResult = resourceManager.lock(node, reserved, reservedInfo.getKey());
         if (lockResult == null || !lockResult.isOk()) {
+            AdminNotifier.getInstance().notify(AdminNotifier.MessageType.ERROR, AdminNotifier.OperationType.LOCK,
+                    node, reserved, "Could not lock device, aborting the build: " + buildName);
             logger.log(Level.SEVERE, "Could not lock device: [{0}], aborting the build: [{1}].",
                     new String[]{reserved.getId(), buildName});
             listener.getLogger().println("Could not lock device: " + reserved.getId() + ", aborting the build.");
@@ -185,6 +197,8 @@ public class SelectionCriteria extends JobProperty<AbstractProject<?, ?>> {
             locked = reserved.clone();
         } catch (CloneNotSupportedException e) {
             //should not happen since ExternalResource and its ancestors are cloneable.
+            AdminNotifier.getInstance().notify(AdminNotifier.MessageType.ERROR, AdminNotifier.OperationType.LOCK,
+                    node, reserved, "Could not clone the External resource, aborting the build: " + buildName);
             logger.log(Level.SEVERE,
                     "Could not clone the External resource: [{0}], aborting the build: [{1}].",
                     new String[]{reserved.getId(), buildName});

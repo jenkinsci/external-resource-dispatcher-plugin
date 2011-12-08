@@ -30,6 +30,7 @@ import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashRe
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.veto.BecauseNoAvailableResources;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.veto.BecauseNoMatchingResource;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.veto.BecauseNothingReserved;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.AdminNotifier;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.AvailabilityFilter;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.ExternalResourceManager;
 import hudson.Extension;
@@ -102,11 +103,13 @@ public class ExternalResourceQueueTaskDispatcher extends QueueTaskDispatcher {
 
         if (reservedResource == null) {
             //None of the matching resources could be reserved, block the build
-            //TODO notify admin?
+            AdminNotifier.getInstance().notify(AdminNotifier.MessageType.WARNING, AdminNotifier.OperationType.RESERVE,
+                    node, reservedResource, "Found one or more matching external resources but could not reserve any "
+                            + "of them.");
             return new BecauseNothingReserved(node);
         }
 
-        //Cannot create a metadata action since it requires a build. Temporarely storing it in a separate action.
+        //Cannot create a metadata action since it requires a build. Temporarily storing it in a separate action.
         ReservedExternalResourceAction storage = getReservedExternalResourceAction(item);
         storage.push(reservedResource);
 

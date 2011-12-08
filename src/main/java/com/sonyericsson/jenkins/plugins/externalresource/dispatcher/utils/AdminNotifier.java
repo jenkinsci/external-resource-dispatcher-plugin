@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.text.MessageFormat;
+import java.util.Calendar;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -42,6 +43,11 @@ import java.util.logging.Logger;
  * @author Hu, Jack &lt;jack.hu@sonyericsson.com&gt;
  */
 public final class AdminNotifier {
+
+     /**
+      * the logger.
+      */
+    private static final Logger logger = Logger.getLogger(AdminNotifier.class.getName());
 
     private static AdminNotifier instance = new AdminNotifier();
 
@@ -53,11 +59,6 @@ public final class AdminNotifier {
     public static AdminNotifier getInstance() {
         return instance;
     }
-
-    /**
-     * the logger.
-     */
-   private static final Logger logger = Logger.getLogger(AdminNotifier.class.getName());
 
     /**
       * the administrator file for record the notification..
@@ -113,7 +114,7 @@ public final class AdminNotifier {
             deviceId = er.getId();
         }
         String nodeName = node.getDisplayName();
-        String message = MessageFormat.format("{0}, {1}, {2}, {3}, {4}\n",
+        String message = MessageFormat.format("{0}, {1}, {2}, {3}, {4}, {5}\n", Calendar.getInstance().getTime(),
                     msgType.toString(), deviceId, opType.toString(), nodeName, msg);
         recordFile(message);
     }
@@ -185,7 +186,7 @@ public final class AdminNotifier {
       /**
          * The Warring type.
          */
-        WARRING,
+        WARNING,
 
       /**
          * The Error type.

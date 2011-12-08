@@ -29,6 +29,7 @@ import com.sonyericsson.hudson.plugins.metadata.model.values.TreeStructureUtil;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashInfo;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashResult;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.AdminNotifier;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.AvailabilityFilter;
 import hudson.Extension;
 import hudson.model.AbstractBuild;
@@ -112,11 +113,13 @@ public class ReleaseRunListener extends RunListener<AbstractBuild> {
      * @param buildLogger   to inform the user with.
      */
     private void logNoLongerAttached(AbstractBuild build, ExternalResource buildResource, PrintStream buildLogger) {
+        AdminNotifier.getInstance().notify(AdminNotifier.MessageType.WARNING, AdminNotifier.OperationType.RELEASE,
+                        build.getBuiltOn(), buildResource,
+                "The external resource is no longer attached to the node. Skipping release");
         buildLogger.println("The external resource is no longer attached to the node. Skipping release");
         logger.log(Level.WARNING, "The external resource [{0}] is no longer attached to the node [{1}]."
                 + " Skipping release.",
                 new String[]{buildResource.getId(), build.getBuiltOn().getNodeName()});
-        //TODO AdminNotifier
     }
 
     /**
@@ -127,12 +130,13 @@ public class ReleaseRunListener extends RunListener<AbstractBuild> {
      * @param nodeResource the resource instance attached to the node.
      */
     private void logWarningPreReleased(AbstractBuild build, PrintStream buildLogger, ExternalResource nodeResource) {
+        AdminNotifier.getInstance().notify(AdminNotifier.MessageType.WARNING, AdminNotifier.OperationType.RELEASE,
+                        build.getBuiltOn(), nodeResource, "The resource has already been unlocked by some other means");
         buildLogger.println("WARNING The resource has already been unlocked by some other"
                 + " means. The Build might have suffered from it.");
         logger.log(Level.WARNING, "The resource [{0}] on node [{1}] has already been unlocked"
                 + " by some other means",
                 new String[]{nodeResource.getId(), build.getBuiltOn().getNodeName()});
-        //TODO AdminNotifier
     }
 
     /**
@@ -162,6 +166,10 @@ public class ReleaseRunListener extends RunListener<AbstractBuild> {
                                    ExternalResource nodeResource, StashResult result) {
         buildLogger.println("ERROR Failed to release resource " + nodeResource.getId());
         if (result != null) {
+            AdminNotifier.getInstance().notify(AdminNotifier.MessageType.ERROR, AdminNotifier.OperationType.RELEASE,
+                        build.getBuiltOn(), nodeResource, "Failed to release external resource from build: "
+                            + build.getFullDisplayName() + " Status: " + result.getStatus() + ", Code: "
+                            + result.getErrorCode() + ", Message: " + result.getMessage());
             buildLogger.println("\tStatus: " + result.getStatus()
                     + " Code: " + result.getErrorCode() + " Message: " + result.getMessage());
             logger.log(Level.SEVERE, "Failed to release resource [{0}] from build [{1}]:"
@@ -169,10 +177,12 @@ public class ReleaseRunListener extends RunListener<AbstractBuild> {
                     new Object[]{nodeResource.getId(), build.getFullDisplayName(),
                             result.getStatus(), result.getErrorCode(), result.getMessage(), });
         } else {
+            AdminNotifier.getInstance().notify(AdminNotifier.MessageType.ERROR, AdminNotifier.OperationType.RELEASE,
+                        build.getBuiltOn(), nodeResource, "Failed to release external resource  from build:"
+                            + build.getFullDisplayName() + "No result!");
             logger.log(Level.SEVERE, "Failed to release resource [{0}] from build [{1}]: "
                     + "No Result!",
                     new Object[]{nodeResource.getId(), build.getFullDisplayName()});
         }
-        //TODO AdminNotifier
     }
 }
