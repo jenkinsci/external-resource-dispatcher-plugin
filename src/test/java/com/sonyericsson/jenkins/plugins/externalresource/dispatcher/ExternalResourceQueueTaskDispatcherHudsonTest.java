@@ -89,7 +89,8 @@ public class ExternalResourceQueueTaskDispatcherHudsonTest extends HudsonTestCas
         //project = this.configRoundtrip(project);
         //TODO an active selection criteria
         AbstractDeviceSelection selection = new StringDeviceSelection("is.matching", "yes");
-        project.addProperty(new SelectionCriteria(Collections.singletonList(selection)));
+        boolean selectionEnabled = true;
+        project.addProperty(new SelectionCriteria(selectionEnabled, Collections.singletonList(selection)));
 
         long start = System.currentTimeMillis();
 
@@ -117,13 +118,30 @@ public class ExternalResourceQueueTaskDispatcherHudsonTest extends HudsonTestCas
         FreeStyleProject project = this.createFreeStyleProject("testProject");
         project.setAssignedLabel(new LabelAtom("TEST"));
         AbstractDeviceSelection selection = new StringDeviceSelection("is.matching", "yes");
-        project.addProperty(new SelectionCriteria(Collections.singletonList(selection)));
+        boolean selectionEnabled = true;
+        project.addProperty(new SelectionCriteria(selectionEnabled, Collections.singletonList(selection)));
         LockBuilder builder = new LockBuilder();
         project.getBuildersList().add(builder);
         FreeStyleBuild build = this.buildAndAssertSuccess(project);
         assertNotNull(builder.builderResource);
         assertEquals(builder.builderResource.getId(), resource.getId());
         assertEquals(builder.stashedBy, build.getUrl());
+    }
+
+    /**
+     * Tests that selection disabled makes the build go through even though
+     * the selection criteria doesn't match any phone.
+     *
+     * @throws Exception if so.
+     */
+    public void testSelectionNotEnabled() throws Exception {
+        FreeStyleProject project = this.createFreeStyleProject("testProject");
+        project.setAssignedLabel(new LabelAtom("TEST"));
+        AbstractDeviceSelection selection = new StringDeviceSelection("is.matching", "no");
+        boolean selectionEnabled = false;
+        project.addProperty(new SelectionCriteria(selectionEnabled, Collections.singletonList(selection)));
+        project.getBuildersList().add(new Shell("sleep 2"));
+        FreeStyleBuild build = this.buildAndAssertSuccess(project);
     }
 
     /**

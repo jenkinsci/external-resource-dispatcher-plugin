@@ -56,13 +56,13 @@ public class ExternalResourceQueueTaskDispatcher extends QueueTaskDispatcher {
 
         SelectionCriteria selectionCriteria = getSelectionCriteria(item.task);
         if (selectionCriteria == null
+                || !selectionCriteria.getSelectionEnabled()
                 || selectionCriteria.getDeviceSelectionList() == null
                 || selectionCriteria.getDeviceSelectionList().isEmpty()) {
             //Either it is not a buildable item that we are interested in, or it is a project that
             // doesn't have a configured criteria. So we say ok.
             return null;
         }
-        //TODO instead of checking for an empty selection list or not, make a better UI with an optional block.
 
         AvailabilityFilter availabilityFilter = AvailabilityFilter.getInstance();
 
