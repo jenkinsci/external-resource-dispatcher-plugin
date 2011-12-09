@@ -25,6 +25,7 @@ package com.sonyericsson.jenkins.plugins.externalresource.dispatcher;
 
 import com.sonyericsson.hudson.plugins.metadata.model.MetadataBuildAction;
 import com.sonyericsson.hudson.plugins.metadata.model.MetadataNodeProperty;
+import com.sonyericsson.hudson.plugins.metadata.model.MetadataParent;
 import com.sonyericsson.hudson.plugins.metadata.model.values.MetadataValue;
 import com.sonyericsson.hudson.plugins.metadata.model.values.TreeStructureUtil;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
@@ -43,7 +44,10 @@ import hudson.slaves.DumbSlave;
 import hudson.tasks.Builder;
 import hudson.tasks.Mailer;
 import hudson.tasks.Shell;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
 import org.jvnet.hudson.test.HudsonTestCase;
+import org.mockito.Mockito;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -92,6 +96,9 @@ public class ExternalResourceQueueTaskDispatcherHudsonTest extends HudsonTestCas
         boolean selectionEnabled = true;
         project.addProperty(new SelectionCriteria(selectionEnabled, Collections.singletonList(selection)));
 
+        MetadataParent parent = resource.getParent();
+        resource = Mockito.spy(resource);
+        parent.setChild(parent.indexOf(resource.getName()), resource);
         long start = System.currentTimeMillis();
 
         Future<FreeStyleBuild> future = project.scheduleBuild2(0, new Cause.UserCause());
@@ -104,8 +111,8 @@ public class ExternalResourceQueueTaskDispatcherHudsonTest extends HudsonTestCas
                 break;
             }
         }
-        assertNotNull(reservation);
-        assertTrue(reservation.getStashedBy().contains(project.getName()));
+
+        Mockito.verify(resource).setReserved(Mockito.argThat(new ValidReservation(project.getName())));
         ReservedExternalResourceAction action = future.get().getAction(ReservedExternalResourceAction.class);
         assertNotNull(action);
     }
@@ -166,5 +173,38 @@ public class ExternalResourceQueueTaskDispatcherHudsonTest extends HudsonTestCas
             stashedBy = builderResource.getLocked().getStashedBy();
          return true;
         }
+    }
+
+    /**
+     * the Matcher class for valid reservation.
+     * @author Zhang Leimeng
+     */
+    static class ValidReservation extends BaseMatcher<StashInfo> {
+        String stashedByContains;
+
+        /**
+         * standard constructor.
+         * @param stashedByContains the stash info which should be contained.
+         */
+        ValidReservation(String stashedByContains) {
+            this.stashedByContains = stashedByContains;
+        }
+
+        @Override
+        public boolean matches(Object o) {
+            if (o != null && o instanceof StashInfo) {
+                StashInfo info = (StashInfo)o;
+                if (info.getStashedBy().contains(stashedByContains)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public void describeTo(Description description) {
+            description.appendText("Valid Reservation");
+        }
+
     }
 }

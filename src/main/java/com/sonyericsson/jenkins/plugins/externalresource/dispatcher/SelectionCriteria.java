@@ -177,7 +177,9 @@ public class SelectionCriteria extends JobProperty<AbstractProject<?, ?>> {
         }
         //update the node and build information.
         StashInfo lockInfo = new StashInfo(lockResult, build.getUrl());
+        // change the reserved info and set lock info.
         reserved.setLocked(lockInfo);
+        reserved.setReserved(null);
         ExternalResource locked;
         try {
             locked = reserved.clone();
