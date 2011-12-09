@@ -164,7 +164,7 @@ public class ExternalResourceQueueTaskDispatcherHudsonTest extends HudsonTestCas
                 listener.error("No MetadataBuildAction in the build.");
                 return false;
             }
-            MetadataValue value = TreeStructureUtil.getPath(action, Constants.BUILD_LOCKED_RESOURCE_PATH);
+            MetadataValue value = TreeStructureUtil.getPath(action, Constants.getBuildLockedResourcePath());
             if (value == null || !(value instanceof ExternalResource)) {
                 listener.error("No locked resource in the build.");
                 return false;

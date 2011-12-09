@@ -40,6 +40,8 @@ import java.io.PrintStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Constants.getBuildLockedResourcePath;
+
 /**
  * RunListener in charge of releasing a locked
  * {@link com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource}
@@ -57,7 +59,7 @@ public class ReleaseRunListener extends RunListener<AbstractBuild> {
         logger.entering("ReleaseRunListener", "onCompleted", build);
         MetadataBuildAction metadata = build.getAction(MetadataBuildAction.class);
         if (metadata != null) {
-            MetadataValue value = TreeStructureUtil.getPath(metadata, Constants.BUILD_LOCKED_RESOURCE_PATH);
+            MetadataValue value = TreeStructureUtil.getPath(metadata, getBuildLockedResourcePath());
             if (value != null && value instanceof ExternalResource) {
                 ExternalResource buildResource = (ExternalResource)value;
                 PrintStream buildLogger = listener.getLogger();

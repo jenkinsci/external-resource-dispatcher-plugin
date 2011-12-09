@@ -53,8 +53,8 @@ import hudson.model.JobPropertyDescriptor;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.AbstractDeviceSelection;
 
-import static com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Constants.BUILD_LOCKED_RESOURCE_PARENT_PATH;
 import static com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Constants.BUILD_LOCKED_RESOURCE_NAME;
+import static com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Constants.getBuildLockedResourceParentPath;
 
 
 /**
@@ -212,7 +212,7 @@ public class SelectionCriteria extends JobProperty<AbstractProject<?, ?>> {
             build.addAction(metadataBuildAction);
         }
         locked.setName(BUILD_LOCKED_RESOURCE_NAME);
-        TreeNodeMetadataValue lockedTree = TreeStructureUtil.createPath(locked, BUILD_LOCKED_RESOURCE_PARENT_PATH);
+        TreeNodeMetadataValue lockedTree = TreeStructureUtil.createPath(locked, getBuildLockedResourceParentPath());
         metadataBuildAction.addChild(lockedTree);
         locked.setExposeToEnvironment(true);
         //The resource has been locked and we can continue with the build.

@@ -39,11 +39,13 @@ public class ConstantsTest {
      */
     @Test
     public void testBuildLockedResourcePath() {
-        assertEquals(Constants.BUILD_LOCKED_RESOURCE_PARENT_PATH.length + 1,
-                Constants.BUILD_LOCKED_RESOURCE_PATH.length);
+        String[] buildLockedResourceParentPath = Constants.getBuildLockedResourceParentPath();
+        String[] buildLockedResourcePath = Constants.getBuildLockedResourcePath();
+        assertEquals(buildLockedResourceParentPath.length + 1,
+                buildLockedResourcePath.length);
         assertEquals(Constants.BUILD_LOCKED_RESOURCE_NAME,
-                Constants.BUILD_LOCKED_RESOURCE_PATH[Constants.BUILD_LOCKED_RESOURCE_PATH.length - 1]);
-        assertEquals(Constants.BUILD_LOCKED_RESOURCE_PARENT_PATH[0],
-                Constants.BUILD_LOCKED_RESOURCE_PATH[0]);
+                buildLockedResourcePath[buildLockedResourcePath.length - 1]);
+        assertEquals(buildLockedResourceParentPath[0],
+                buildLockedResourcePath[0]);
     }
 }

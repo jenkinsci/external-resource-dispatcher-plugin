@@ -23,6 +23,8 @@
  */
 package com.sonyericsson.jenkins.plugins.externalresource.dispatcher;
 
+import java.util.Arrays;
+
 /**
  * Common constants.
  *
@@ -121,7 +123,19 @@ public final class Constants {
     /**
      * The path to the parent node where the locked external resource should be placed.
      */
-    public static final String[] BUILD_LOCKED_RESOURCE_PARENT_PATH = {"external-resources"};
+    private static final String[] BUILD_LOCKED_RESOURCE_PARENT_PATH = {"external-resources"};
+
+    /**
+     * The path to the parent node where the locked external resource should be placed.
+     * Returns a copy of {@link #BUILD_LOCKED_RESOURCE_PARENT_PATH}.
+     * So the original cannot be manipulated in runtime.
+     *
+     * @return the path to the parent node of the locked external resource.
+     */
+    public static String[] getBuildLockedResourceParentPath() {
+        return Arrays.copyOf(BUILD_LOCKED_RESOURCE_PARENT_PATH,
+                BUILD_LOCKED_RESOURCE_PARENT_PATH.length);
+    }
 
     /**
      * The name of the locked external resource when it is placed in its parent node.
@@ -129,15 +143,26 @@ public final class Constants {
     public static final String BUILD_LOCKED_RESOURCE_NAME = "locked";
 
     /**
-     * The full path to the locked resource for a buid.
+     * The full path to the locked resource for a build.
      * Constructed by {@link #BUILD_LOCKED_RESOURCE_PARENT_PATH} + {@link #BUILD_LOCKED_RESOURCE_NAME}.
      */
-    public static final String[] BUILD_LOCKED_RESOURCE_PATH;
+    private static final String[] BUILD_LOCKED_RESOURCE_PATH;
+
+    /**
+     * The full path to the locked resource for a build.
+     * Constructed by {@link #getBuildLockedResourceParentPath()} + {@link #BUILD_LOCKED_RESOURCE_NAME}.
+     * Returns a copy of {@link #BUILD_LOCKED_RESOURCE_PATH}.
+     * So the original cannot be manipulated in runtime.
+     *
+     * @return The full path to the locked resource for a build.
+     */
+    public static String[] getBuildLockedResourcePath() {
+        return Arrays.copyOf(BUILD_LOCKED_RESOURCE_PATH, BUILD_LOCKED_RESOURCE_PATH.length);
+    }
 
     static {
-        BUILD_LOCKED_RESOURCE_PATH = new String[BUILD_LOCKED_RESOURCE_PARENT_PATH.length + 1];
-        System.arraycopy(BUILD_LOCKED_RESOURCE_PARENT_PATH, 0,
-                BUILD_LOCKED_RESOURCE_PATH, 0, BUILD_LOCKED_RESOURCE_PARENT_PATH.length);
+        BUILD_LOCKED_RESOURCE_PATH = Arrays.copyOf(BUILD_LOCKED_RESOURCE_PARENT_PATH,
+                BUILD_LOCKED_RESOURCE_PARENT_PATH.length + 1);
         BUILD_LOCKED_RESOURCE_PATH[BUILD_LOCKED_RESOURCE_PARENT_PATH.length] =
                 BUILD_LOCKED_RESOURCE_NAME;
     }

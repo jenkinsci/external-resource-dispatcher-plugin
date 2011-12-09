@@ -86,7 +86,7 @@ public class ReleaseRunListenerHudsonTest extends HudsonTestCase {
         MetadataBuildAction metadata = build.getAction(MetadataBuildAction.class);
         assertNotNull(metadata);
         ExternalResource buildResource = (ExternalResource)TreeStructureUtil.getPath(metadata,
-                Constants.BUILD_LOCKED_RESOURCE_PATH);
+                Constants.getBuildLockedResourcePath());
         assertNotNull(buildResource);
         assertNull(buildResource.getLocked());
         assertNull(resource.getLocked());
