@@ -93,4 +93,15 @@ public class ReservedExternalResourceAction implements Action {
     public synchronized ExternalResource peek() {
         return stack.peek();
     }
+
+    /**
+     * See if the stack is empty or not.
+     *
+     * @return whether the stack is empty.
+     *
+     * @see java.util.Stack#empty()
+     */
+    public synchronized boolean isEmpty() {
+        return stack.empty();
+    }
 }

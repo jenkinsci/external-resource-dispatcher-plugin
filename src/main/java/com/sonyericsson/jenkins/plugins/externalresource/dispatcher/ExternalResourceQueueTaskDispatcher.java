@@ -30,6 +30,7 @@ import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashRe
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.veto.BecauseNoAvailableResources;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.veto.BecauseNoMatchingResource;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.veto.BecauseNothingReserved;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.veto.BecauseAlreadyReserved;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.AdminNotifier;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.AvailabilityFilter;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.ExternalResourceManager;
@@ -54,6 +55,14 @@ public class ExternalResourceQueueTaskDispatcher extends QueueTaskDispatcher {
 
     @Override
     public CauseOfBlockage canTake(Node node, Queue.BuildableItem item) {
+
+        // check whether there is already something reserved for use. skip the following step if so.
+        // the cantake() method will be called several times, depending on how many available executors left.
+        ReservedExternalResourceAction storage = getReservedExternalResourceAction(item);
+        if (!storage.isEmpty()) { // if already something there.
+            // return a blockage cause to avoid the executor joining to candidates list once we already have one.
+            return new BecauseAlreadyReserved();
+        }
 
         SelectionCriteria selectionCriteria = getSelectionCriteria(item.task);
         if (selectionCriteria == null
@@ -110,7 +119,6 @@ public class ExternalResourceQueueTaskDispatcher extends QueueTaskDispatcher {
         }
 
         //Cannot create a metadata action since it requires a build. Temporarily storing it in a separate action.
-        ReservedExternalResourceAction storage = getReservedExternalResourceAction(item);
         storage.push(reservedResource);
 
 
