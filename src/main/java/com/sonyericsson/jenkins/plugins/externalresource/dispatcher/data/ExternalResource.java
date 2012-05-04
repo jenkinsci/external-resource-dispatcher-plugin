@@ -2,6 +2,7 @@
  *  The MIT License
  *
  *  Copyright 2011 Sony Ericsson Mobile Communications. All rights reserved.
+ *  Copyright 2012 Sony Mobile Communications AB. All rights reserved.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -242,6 +243,53 @@ public class ExternalResource extends TreeNodeMetadataValue {
     public synchronized void doEnable(boolean enable) throws IOException {
         getACL().checkPermission(PluginImpl.ENABLE_DISABLE_EXTERNAL_RESOURCE);
         setEnabled(enable);
+        getContainer().save();
+    }
+
+    /**
+     * Locks a resource.
+     *
+     * @param info the StashInfo containing the lock information.
+     * @throws IOException if the container cannot be saved.
+     */
+    public synchronized void doLock(StashInfo info) throws IOException {
+        if (!(PluginImpl.getInstance().getManager().isExternalLockingOk())) {
+            throw new IllegalStateException("No device monitor is currently active, this operation is not permitted.");
+        }
+        getACL().checkPermission(PluginImpl.LOCK_RELEASE_EXTERNAL_RESOURCE);
+        setLocked(info);
+        setReserved(null);
+        getContainer().save();
+    }
+
+    /**
+     * Reserves a resource.
+     *
+     * @param info the StashInfo containing the reservation information.
+     * @throws IOException if the container cannot be saved.
+     */
+    public synchronized void doReserve(StashInfo info) throws IOException {
+        if (!(PluginImpl.getInstance().getManager().isExternalLockingOk())) {
+            throw new IllegalStateException("No device monitor is currently active, this operation is not permitted.");
+        }
+        getACL().checkPermission(PluginImpl.LOCK_RELEASE_EXTERNAL_RESOURCE);
+        setReserved(info);
+        setLocked(null);
+        getContainer().save();
+    }
+
+    /**
+     * Releases a resource from its reservations and locks.
+     *
+     * @throws IOException if the container cannot be saved.
+     */
+    public synchronized void doRelease() throws IOException {
+        if (!(PluginImpl.getInstance().getManager().isExternalLockingOk())) {
+            throw new IllegalStateException("No device monitor is currently active, this operation is not permitted.");
+        }
+        getACL().checkPermission(PluginImpl.LOCK_RELEASE_EXTERNAL_RESOURCE);
+        setLocked(null);
+        setReserved(null);
         getContainer().save();
     }
 

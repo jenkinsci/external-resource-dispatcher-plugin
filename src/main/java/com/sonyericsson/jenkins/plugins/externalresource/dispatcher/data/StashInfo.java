@@ -2,6 +2,7 @@
  *  The MIT License
  *
  *  Copyright 2011 Sony Ericsson Mobile Communications. All rights reserved.
+ *  Copyright 2012 Sony Mobile Communications AB. All rights reserved.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +28,8 @@ import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Constants;
 import net.sf.json.JSONObject;
 
 import java.io.Serializable;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 /**
  * Information about the "stashed" status of an {@link ExternalResource}. I.e. The lock and reservation status.
@@ -123,6 +126,20 @@ public class StashInfo implements Serializable, Cloneable {
      */
     public boolean isInternal() {
         return getType() == StashType.INTERNAL;
+    }
+
+    /**
+     * Returns true if the stashedBy String is a valid URL.
+     *
+     * @return true if URL, false if not.
+     */
+    public boolean stashedByIsURL() {
+        try {
+            URL url = new URL(getStashedBy());
+            return true;
+        } catch (MalformedURLException e) {
+            return false;
+        }
     }
 
     /**

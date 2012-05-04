@@ -2,6 +2,7 @@
  *  The MIT License
  *
  *  Copyright 2011 Sony Ericsson Mobile Communications. All rights reserved.
+ *  Copyright 2012 Sony Mobile Communications AB. All rights reserved.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -60,10 +61,25 @@ public class PluginImpl extends Plugin {
             PluginImpl.class, Messages._ExternalResource_DisplayName());
 
     /**
+     * Overall Permission for ExternalResource handling, grants the other permissions in this group.
+     */
+    public static final Permission ADMINISTER_EXTERNAL_RESOURCE = new Permission(GROUP, "Administer",
+            Messages._ExternalResource_Administer(), Computer.CONFIGURE);
+
+    /**
      * Permission to enable or Disable an {@link ExternalResource}.
      */
     public static final Permission ENABLE_DISABLE_EXTERNAL_RESOURCE = new Permission(GROUP, "EnableDisable",
-            Messages._ExternalResource_EnableDisable(), Computer.CONFIGURE);
+            Messages._ExternalResource_EnableDisable(), ADMINISTER_EXTERNAL_RESOURCE);
+
+    /**
+     * Permission to enable or Disable an {@link ExternalResource}.
+     */
+    public static final Permission LOCK_RELEASE_EXTERNAL_RESOURCE = new Permission(GROUP, "LockRelease",
+            Messages._ExternalResource_LockRelease(), ADMINISTER_EXTERNAL_RESOURCE);
+
+
+
 
     /**
      * Form field name for releaseKey on the config page.

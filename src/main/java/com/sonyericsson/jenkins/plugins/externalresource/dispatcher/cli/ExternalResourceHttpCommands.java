@@ -2,6 +2,7 @@
  *  The MIT License
  *
  *  Copyright 2011 Sony Ericsson Mobile Communications. All rights reserved.
+ *  Copyright 2012 Sony Mobile Communications AB. All rights reserved.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +29,7 @@ import com.sonyericsson.hudson.plugins.metadata.cli.CliUtils;
 import com.sonyericsson.hudson.plugins.metadata.cli.CliResponse.Type;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Constants;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashInfo;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.AvailabilityFilter;
 import hudson.Extension;
 import hudson.model.Hudson;
@@ -163,6 +165,106 @@ public class ExternalResourceHttpCommands implements RootAction {
                     logger.log(Level.WARNING, "Probably failed to save the node config to disk! ", e);
                     sendResponse(Type.warning, 0, "Warning",
                             "Failed to save the changes to disk, but the resource state has changed.", response);
+                }
+            }
+        };
+        doSomething(node, id, something, response);
+    }
+
+    /**
+     * Signal from an external lock handler that an {@link ExternalResource} has been locked.
+     *
+     * @param node     the node where the resource is located.
+     * @param id       the id of the resource.
+     * @param response the response handle to write to.
+     * @param lockedBy a String describing what has locked the resource.
+     * @throws IOException if so.
+     * @see CliResponse
+     */
+    @SuppressWarnings("unused")
+    public void doLockResource(
+            @QueryParameter(value = "node", required = true) final String node,
+            @QueryParameter(value = "id", required = true) final String id,
+            @QueryParameter(value = "lockedBy", required = true) final String lockedBy,
+        StaplerResponse response) throws IOException {
+        Something something = new Something() {
+            @Override
+            public void doIt(ExternalResource resource, StaplerResponse response) throws IOException {
+                try {
+                    StashInfo lockedInfo = new StashInfo(StashInfo.StashType.EXTERNAL, lockedBy, null, null);
+                    resource.doLock(lockedInfo);
+                    sendOk(response);
+                } catch (IOException e) {
+                    logger.log(Level.WARNING, "Probably failed to save the node config to disk! ", e);
+                    sendResponse(Type.warning, 0, "Warning",
+                            "Failed to save the changes to disk, but the resource state has changed.", response);
+                }
+            }
+        };
+        doSomething(node, id, something, response);
+    }
+
+    /**
+     * Signal from an external lock handler that an {@link ExternalResource} has been reserved.
+     *
+     * @param node     the node where the resource is located.
+     * @param id       the id of the resource.
+     * @param response the response handle to write to.
+     * @param reservedBy a String describing what has reserved the resource.
+     * @throws IOException if so.
+     * @see CliResponse
+     */
+    @SuppressWarnings("unused")
+    public void doReserveResource(
+            @QueryParameter(value = "node", required = true) final String node,
+            @QueryParameter(value = "id", required = true) final String id,
+            @QueryParameter(value = "reservedBy", required = true) final String reservedBy,
+        StaplerResponse response) throws IOException {
+        Something something = new Something() {
+            @Override
+            public void doIt(ExternalResource resource, StaplerResponse response) throws IOException {
+                try {
+                    StashInfo reservedInfo = new StashInfo(StashInfo.StashType.EXTERNAL, reservedBy, null, null);
+                    resource.doReserve(reservedInfo);
+                    sendOk(response);
+                } catch (IOException e) {
+                    logger.log(Level.WARNING, "Probably failed to save the node config to disk! ", e);
+                    sendResponse(Type.warning, 0, "Warning",
+                            "Failed to save the changes to disk, but the resource state has changed.", response);
+                }
+            }
+        };
+        doSomething(node, id, something, response);
+    }
+
+    /**
+     * Signal from an external lock handler that an {@link ExternalResource} has been released.
+     *
+     * @param node     the node where the resource is located.
+     * @param id       the id of the resource.
+     * @param response the response handle to write to.
+     * @throws IOException if so.
+     * @see CliResponse
+     */
+    @SuppressWarnings("unused")
+    public void doReleaseResource(
+            @QueryParameter(value = "node", required = true) final String node,
+            @QueryParameter(value = "id", required = true) final String id,
+        StaplerResponse response) throws IOException {
+        Something something = new Something() {
+            @Override
+            public void doIt(ExternalResource resource, StaplerResponse response) throws IOException {
+                try {
+                    resource.doRelease();
+                    sendOk(response);
+                } catch (IOException e) {
+                    logger.log(Level.WARNING, "Probably failed to save the node config to disk! ", e);
+                    sendResponse(Type.warning, 0, "Warning",
+                            "Failed to save the changes to disk, but the resource state has changed.", response);
+                } catch (Exception e) {
+                    logger.log(Level.WARNING, "Could not release resource! ", e);
+                    sendResponse(Type.warning, 0, "Warning",
+                            "Could not release resource.", response);
                 }
             }
         };

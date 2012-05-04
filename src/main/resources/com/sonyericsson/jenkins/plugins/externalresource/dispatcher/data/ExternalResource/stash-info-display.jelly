@@ -21,17 +21,25 @@
   ~ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
   ~ THE SOFTWARE.
   -->
-<j:jelly xmlns:j="jelly:core" xmlns:i="jelly:fmt">
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:i="jelly:fmt" xmlns:h="jelly:html">
     <table class="pane">
         <tr>
             <th align="left" width="15%">${%By}</th>
             <td>
                 <j:choose>
                     <j:when test="${it.isInternal()}">
-                        <a href="${rootURL}/job/${it.stashedBy}">${it.stashedBy}</a>
+                        <a href="${h.rawHtml(rootURL)}/${h.rawHtml(it.stashedBy)}">${it.stashedBy}</a>
                     </j:when>
                     <j:otherwise>
-                        ${it.stashedBy}
+                        <j:choose>
+                            <j:when test="${it.isURL()}">
+                                <a href="${h.rawHtml(it.stashedBy)}">${it.stashedBy}</a>
+                            </j:when>
+                            <j:otherwise>
+                                ${it.stashedBy}
+                            </j:otherwise>
+                        </j:choose>
                     </j:otherwise>
                 </j:choose>
             </td>

@@ -28,7 +28,9 @@ import com.sonyericsson.hudson.plugins.metadata.model.MetadataNodeProperty;
 import com.sonyericsson.hudson.plugins.metadata.model.values.MetadataValue;
 import com.sonyericsson.hudson.plugins.metadata.model.values.TreeStructureUtil;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.MockUtils;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.PluginImpl;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.ExternalResourceManager;
 import hudson.model.Hudson;
 import hudson.model.Node;
 import hudson.security.ACL;
@@ -46,6 +48,8 @@ import javax.servlet.ServletOutputStream;
 import java.util.Collections;
 import java.util.LinkedList;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -53,6 +57,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -62,7 +67,7 @@ import static org.mockito.Mockito.when;
  * @author Robert Sandell &lt;robert.sandell@sonyericsson.com&gt;
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({CliUtils.class, Hudson.class, ACL.class })
+@PrepareForTest({CliUtils.class, Hudson.class, ACL.class, PluginImpl.class })
 public class ExternalResourceHttpCommandsTest {
 
     private MetadataNodeProperty container;
@@ -81,6 +86,13 @@ public class ExternalResourceHttpCommandsTest {
         Hudson hudson = MockUtils.mockHudson();
         MockUtils.mockMetadataValueDescriptors(hudson);
 
+        PowerMockito.mockStatic(PluginImpl.class);
+        PluginImpl pluginImpl = mock(PluginImpl.class);
+
+        PowerMockito.when(PluginImpl.getInstance()).thenReturn(pluginImpl);
+        ExternalResourceManager manager = mock(ExternalResourceManager.DeviceMonitorExternalResourceManager.class);
+        when(manager.isExternalLockingOk()).thenReturn(true);
+        when(pluginImpl.getManager()).thenReturn(manager);
         container = new MetadataNodeProperty(new LinkedList<MetadataValue>());
         container = spy(container);
         ACL acl = PowerMockito.mock(ACL.class);
@@ -155,7 +167,7 @@ public class ExternalResourceHttpCommandsTest {
 
     /**
      * Happy test for
-     * {@link ExternalResourceHttpCommands#doExpire(String, String, org.kohsuke.stapler.StaplerResponse)}.
+     * {@link ExternalResourceHttpCommands#doExpireReservation(String, String, org.kohsuke.stapler.StaplerResponse)}.
      *
      * @throws Exception if so.
      */
@@ -177,5 +189,78 @@ public class ExternalResourceHttpCommandsTest {
         verify(container).save();
 
         verify(out).print(eq(expectedJson.toString()));
+    }
+
+    /**
+     * Happy test for {@link ExternalResourceHttpCommands#doEnable(String, String, org.kohsuke.stapler.StaplerResponse)}.
+     *
+     * @throws Exception if so.
+     */
+    @Test
+    public void testDoLockAndReleaseResource() throws Exception {
+        String id = "12345678";
+        ExternalResource resource = new ExternalResource("Temp", "Temp", id,
+                false, Collections.<MetadataValue>emptyList());
+        TreeStructureUtil.addValue(container, resource, "test", "path");
+
+        action.doLockResource("testNode", id, "ILockedIt", response);
+
+        JSONObject expectedJson = new JSONObject();
+        expectedJson.put("type", "ok");
+        expectedJson.put("errorCode", 0);
+        expectedJson.put("message", "OK");
+
+        assertNotNull(resource.getLocked());
+        assertEquals("ILockedIt", resource.getLocked().getStashedBy());
+
+        action.doReleaseResource("testNode", id, response);
+        assertNull(resource.getLocked());
+        verify(container, times(2)).save();
+        verify(out, times(2)).print(eq(expectedJson.toString()));
+    }
+
+    /**
+     * Happy test for {@link ExternalResourceHttpCommands#doEnable(String, String, org.kohsuke.stapler.StaplerResponse)}.
+     *
+     * @throws Exception if so.
+     */
+    @Test
+    public void testDoReserveResource() throws Exception {
+        String id = "12345678";
+        ExternalResource resource = new ExternalResource("Temp", "Temp", id,
+                false, Collections.<MetadataValue>emptyList());
+        TreeStructureUtil.addValue(container, resource, "test", "path");
+
+        action.doReserveResource("testNode", id, "IReservedIt", response);
+
+        JSONObject expectedJson = new JSONObject();
+        expectedJson.put("type", "ok");
+        expectedJson.put("errorCode", 0);
+        expectedJson.put("message", "OK");
+
+        assertNotNull(resource.getReserved());
+        assertEquals("IReservedIt", resource.getReserved().getStashedBy());
+
+        verify(out).print(eq(expectedJson.toString()));
+    }
+
+    /**
+     * Tests that no lock can be done when using a NoopManager.
+     * @throws Exception if so.
+     */
+    @Test(expected = IllegalStateException.class)
+    public void testDoLockWithNoopManager() throws Exception {
+        PowerMockito.mockStatic(PluginImpl.class);
+        PluginImpl pluginImpl = mock(PluginImpl.class);
+
+        PowerMockito.when(PluginImpl.getInstance()).thenReturn(pluginImpl);
+        ExternalResourceManager manager = mock(ExternalResourceManager.NoopExternalResourceManager.class);
+        when(pluginImpl.getManager()).thenReturn(manager);
+
+        String id = "12345678";
+        ExternalResource resource = new ExternalResource("Temp", "Temp", id,
+                false, Collections.<MetadataValue>emptyList());
+        TreeStructureUtil.addValue(container, resource, "test", "path");
+        action.doLockResource("testNode", id, "IReservedIt", response);
     }
 }

@@ -104,6 +104,11 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
     public abstract StashResult release(Node node, ExternalResource resource, String key);
 
     /**
+     * Answers true if these operations are allowed using this ExternalResourceManager.
+     * @return true if allowed, false if not.
+     */
+    public abstract boolean isExternalLockingOk();
+    /**
      * A manager that does nothing.
      */
     @Extension
@@ -134,6 +139,11 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
         @Override
         public StashResult release(Node node, ExternalResource resource, String key) {
             return okResult;
+        }
+
+        @Override
+        public boolean isExternalLockingOk() {
+            return false;
         }
 
         /**
@@ -394,6 +404,11 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
                 logger.log(Level.WARNING, MessageFormat.format("Can not release the device {0}.", deviceId), e);
             }
             return convert(rpcRes);
+        }
+
+        @Override
+        public boolean isExternalLockingOk() {
+            return true;
         }
 
         /**
