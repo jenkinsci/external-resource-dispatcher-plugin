@@ -61,8 +61,8 @@ public class StashInfo implements Serializable, Cloneable {
      * Creates a new object with info from the StashResult. The type will be defaulted to {@link
      * StashInfo.StashType#INTERNAL}.
      *
-     * @param result    the result from a
-     *          {@link com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.ExternalResourceManager}
+     * @param result    the result from a {@link
+     *  com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resourcemanagers.ExternalResourceManager}
      *                  operation.
      * @param stashedBy the build that it belongs to.
      */

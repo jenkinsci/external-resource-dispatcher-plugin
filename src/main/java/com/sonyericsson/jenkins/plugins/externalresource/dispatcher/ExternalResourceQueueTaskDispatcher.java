@@ -34,7 +34,7 @@ import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.veto.Be
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.veto.BecauseAlreadyReserved;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.AdminNotifier;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.AvailabilityFilter;
-import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.ExternalResourceManager;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resourcemanagers.ExternalResourceManager;
 import hudson.Extension;
 import hudson.matrix.MatrixConfiguration;
 import hudson.model.AbstractProject;

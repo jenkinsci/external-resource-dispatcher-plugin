@@ -25,7 +25,8 @@
 package com.sonyericsson.jenkins.plugins.externalresource.dispatcher;
 
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
-import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.ExternalResourceManager;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resourcemanagers.ExternalResourceManager;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resourcemanagers.NoopExternalResourceManager;
 import hudson.ExtensionList;
 import hudson.Plugin;
 import hudson.model.Computer;
@@ -118,7 +119,7 @@ public class PluginImpl extends Plugin {
     private int reserveTime = Constants.DEFAULT_RESERVE_TIME;
 
     /**
-     * admin notifier file.  {@link AdminNotifier}
+     * admin notifier file.  {@link com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.AdminNotifier}
      */
     private String adminNotifierFile;
 
@@ -224,12 +225,12 @@ public class PluginImpl extends Plugin {
 
     /**
      * Gives the default
-     * {@link com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.ExternalResourceManager.NoopExternalResourceManager}.
+     * {@link com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resourcemanagers.NoopExternalResourceManager}.
      * @return the default manager.
      */
     public static ExternalResourceManager getNoopResourceManager() {
         return Hudson.getInstance().getExtensionList(ExternalResourceManager.class)
-                .get(ExternalResourceManager.NoopExternalResourceManager.class);
+                .get(NoopExternalResourceManager.class);
     }
 
     /**
@@ -280,7 +281,8 @@ public class PluginImpl extends Plugin {
     }
 
     /**
-     * Retrieves the file name for statistics log used by {@link AdminNotifier}.
+     * Retrieves the file name for statistics log used by
+     * {@link com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.AdminNotifier}.
      *
      * @return the adminNotifierFile.
      */

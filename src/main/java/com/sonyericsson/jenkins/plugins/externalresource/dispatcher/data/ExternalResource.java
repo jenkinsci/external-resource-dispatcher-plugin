@@ -26,7 +26,6 @@ package com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data;
 
 import com.sonyericsson.hudson.plugins.metadata.model.JsonUtils;
 import com.sonyericsson.hudson.plugins.metadata.model.MetadataContainer;
-import com.sonyericsson.hudson.plugins.metadata.model.MetadataNodeProperty;
 import com.sonyericsson.hudson.plugins.metadata.model.MetadataParent;
 import com.sonyericsson.hudson.plugins.metadata.model.values.AbstractMetadataValue;
 import com.sonyericsson.hudson.plugins.metadata.model.values.MetadataValue;
@@ -491,7 +490,7 @@ public class ExternalResource extends TreeNodeMetadataValue {
 
         @Override
         public boolean appliesTo(Descriptor containerDescriptor) {
-            return containerDescriptor instanceof MetadataNodeProperty.MetadataNodePropertyDescriptor;
+            return containerDescriptor instanceof ExternalResourceTreeNode.ExternalResourceTreeNodeDescriptor;
         }
 
         @Override

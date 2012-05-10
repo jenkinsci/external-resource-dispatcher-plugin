@@ -2,6 +2,7 @@
  *  The MIT License
  *
  *  Copyright 2011 Sony Ericsson Mobile Communications. All rights reserved.
+ *  Copyright 2012 Sony Mobile Communications AB. All rights reserved.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -79,12 +80,12 @@ public class ExternalResourceTest {
 
     /**
      * Tests {@link com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource.ExternalResourceDescriptor#appliesTo(hudson.model.Descriptor)}
-     * that it does apply to a node.
+     * that it doesn't apply to a node.
      */
     @Test
     public void testAppliesToBuild() {
         ExternalResource.ExternalResourceDescriptor descriptor = new ExternalResource.ExternalResourceDescriptor();
-        assertTrue(descriptor.appliesTo(new MetadataNodeProperty.MetadataNodePropertyDescriptor()));
+        assertFalse(descriptor.appliesTo(new MetadataNodeProperty.MetadataNodePropertyDescriptor()));
     }
 
     /**

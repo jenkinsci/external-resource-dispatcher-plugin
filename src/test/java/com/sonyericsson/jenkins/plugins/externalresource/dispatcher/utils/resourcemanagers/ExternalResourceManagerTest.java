@@ -22,7 +22,7 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-package com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils;
+package com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resourcemanagers;
 
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.assertEquals;
@@ -31,6 +31,7 @@ import static junit.framework.Assert.fail;
 import static org.mockito.Mockito.when;
 
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.MockUtils;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.JsonRpcUtil;
 import hudson.model.Computer;
 import hudson.model.Hudson;
 import hudson.model.Node;
@@ -53,7 +54,7 @@ import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashResult;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashResult.Status;
-import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.ExternalResourceManager.
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resourcemanagers.
         DeviceMonitorExternalResourceManager.RpcResult;
 
 /**
@@ -126,7 +127,7 @@ public class ExternalResourceManagerTest {
         // mock a node which has hostname.
         Node n = mockNode(nodeName);
 
-        ExternalResourceManager rpcCallERM = new ExternalResourceManager.DeviceMonitorExternalResourceManager();
+        ExternalResourceManager rpcCallERM = new DeviceMonitorExternalResourceManager();
 
         StashResult sRes = rpcCallERM.reserve(n, er, time, "me");
 
@@ -179,7 +180,7 @@ public class ExternalResourceManagerTest {
         // mock a node which has hostname.
         Node n = mockNode(nodeName);
 
-        ExternalResourceManager rpcCallERM = new ExternalResourceManager.DeviceMonitorExternalResourceManager();
+        ExternalResourceManager rpcCallERM = new DeviceMonitorExternalResourceManager();
 
         StashResult sRes = rpcCallERM.lock(n, er, reserveKey, "me");
 
@@ -231,7 +232,7 @@ public class ExternalResourceManagerTest {
         // mock a node which has hostname.
         Node n = mockNode(nodeName);
 
-        ExternalResourceManager rpcCallERM = new ExternalResourceManager.DeviceMonitorExternalResourceManager();
+        ExternalResourceManager rpcCallERM = new DeviceMonitorExternalResourceManager();
 
         StashResult sRes = rpcCallERM.release(n, er, key, "me");
 
@@ -253,7 +254,7 @@ public class ExternalResourceManagerTest {
         JsonRpcHttpClient mockRpcClient = PowerMockito.mock(JsonRpcHttpClient.class);
         try {
             when(mockRpcClient.invoke(methodName, expectedInput,
-                            ExternalResourceManager.DeviceMonitorExternalResourceManager.RpcResult.class)).thenReturn(
+                    DeviceMonitorExternalResourceManager.RpcResult.class)).thenReturn(
                     expectedOutput);
         } catch (Throwable e) {
             e.printStackTrace();

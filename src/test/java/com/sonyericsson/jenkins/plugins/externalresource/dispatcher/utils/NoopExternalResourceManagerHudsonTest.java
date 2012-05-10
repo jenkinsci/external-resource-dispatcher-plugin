@@ -42,7 +42,7 @@ import java.util.LinkedList;
 
 /**
  * Tests for
- * {@link com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.ExternalResourceManager.NoopExternalResourceManager}.
+ * {@link com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resourcemanagers.ExternalResourceManager.NoopExternalResourceManager}.
  *
  * @author Robert Sandell &lt;robert.sandell@sonyericsson.com&gt;
  */
@@ -70,7 +70,7 @@ public class NoopExternalResourceManagerHudsonTest extends HudsonTestCase {
     //CS IGNORE LineLength FOR NEXT 6 LINES. REASON: JavaDoc.
     /**
      * Tests
-     * {@link com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.ExternalResourceManager.NoopExternalResourceManager
+     * {@link com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resourcemanagers.ExternalResourceManager.NoopExternalResourceManager
      * #reserve(hudson.model.Node, com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource, int)}.
      * That a resource reservation times out after the specified interval.
      */

@@ -163,7 +163,7 @@ public class ReleaseRunListener extends RunListener<AbstractBuild> {
      * @param buildLogger  to inform the user with.
      * @param nodeResource the resource instance attached to the node.
      * @param result       the result returned by the manager.
-     * @see com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.ExternalResourceManager
+     * @see com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resourcemanagers.ExternalResourceManager
      *      #release(hudson.model.Node, ExternalResource, String)
      */
     private void logReleaseFailure(AbstractBuild build, PrintStream buildLogger,

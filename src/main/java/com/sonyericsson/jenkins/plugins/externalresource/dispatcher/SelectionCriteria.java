@@ -36,7 +36,7 @@ import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.Reserve
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashInfo;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashResult;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.AdminNotifier;
-import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.ExternalResourceManager;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resourcemanagers.ExternalResourceManager;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import hudson.model.Node;

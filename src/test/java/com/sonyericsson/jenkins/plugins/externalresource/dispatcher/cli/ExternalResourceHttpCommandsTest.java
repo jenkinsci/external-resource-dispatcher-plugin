@@ -31,7 +31,10 @@ import com.sonyericsson.hudson.plugins.metadata.model.values.TreeStructureUtil;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.MockUtils;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.PluginImpl;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
-import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.ExternalResourceManager;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resourcemanagers.
+        DeviceMonitorExternalResourceManager;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resourcemanagers.ExternalResourceManager;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resourcemanagers.NoopExternalResourceManager;
 import hudson.model.Hudson;
 import hudson.model.Node;
 import hudson.security.ACL;
@@ -91,7 +94,7 @@ public class ExternalResourceHttpCommandsTest {
         PluginImpl pluginImpl = mock(PluginImpl.class);
 
         PowerMockito.when(PluginImpl.getInstance()).thenReturn(pluginImpl);
-        ExternalResourceManager manager = mock(ExternalResourceManager.DeviceMonitorExternalResourceManager.class);
+        ExternalResourceManager manager = mock(DeviceMonitorExternalResourceManager.class);
         when(manager.isExternalLockingOk()).thenReturn(true);
         when(pluginImpl.getManager()).thenReturn(manager);
         container = new MetadataNodeProperty(new LinkedList<MetadataValue>());
@@ -320,7 +323,7 @@ public class ExternalResourceHttpCommandsTest {
         PluginImpl pluginImpl = mock(PluginImpl.class);
 
         PowerMockito.when(PluginImpl.getInstance()).thenReturn(pluginImpl);
-        ExternalResourceManager manager = mock(ExternalResourceManager.NoopExternalResourceManager.class);
+        ExternalResourceManager manager = mock(NoopExternalResourceManager.class);
         when(pluginImpl.getManager()).thenReturn(manager);
 
         String id = "12345678";

@@ -2,6 +2,7 @@
  *  The MIT License
  *
  *  Copyright 2011 Sony Ericsson Mobile Communications. All rights reserved.
+ *  Copyright 2012 Sony Mobile Communications AB. All rights reserved.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +24,9 @@
  */
 package com.sonyericsson.jenkins.plugins.externalresource.dispatcher;
 
-import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.ExternalResourceManager;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resourcemanagers.
+        DeviceMonitorExternalResourceManager;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resourcemanagers.ExternalResourceManager;
 import hudson.model.Descriptor;
 import hudson.model.Hudson;
 import net.sf.json.JSONObject;
@@ -60,12 +63,12 @@ public class PluginImplHudsonTest extends HudsonTestCase {
         config.put(PluginImpl.FORM_NAME_RELEASE_KEY, "some_key");
         config.put(PluginImpl.FORM_NAME_RESERVE_TIME, PluginImpl.getInstance().getDefaultReserveTime());
         config.put(PluginImpl.FORM_NAME_MANAGER,
-                ExternalResourceManager.DeviceMonitorExternalResourceManager.class.getName());
+                DeviceMonitorExternalResourceManager.class.getName());
         config.put(PluginImpl.FORM_NAME_ADMIN_FILE, "/tmp/notify.csv");
         PluginImpl.getInstance().configure(null, config);
 
         ExternalResourceManager expected = Hudson.getInstance().getExtensionList(ExternalResourceManager.class)
-                .get(ExternalResourceManager.DeviceMonitorExternalResourceManager.class);
+                .get(DeviceMonitorExternalResourceManager.class);
         assertSame(expected, PluginImpl.getInstance().getManager());
 
         String expectedManagerClass = Whitebox.getInternalState(PluginImpl.getInstance(), "managerClass");
