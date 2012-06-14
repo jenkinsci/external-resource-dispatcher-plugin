@@ -2,6 +2,7 @@
  *  The MIT License
  *
  *  Copyright 2011 Sony Ericsson Mobile Communications. All rights reserved.
+ *  Copyright 2012 Sony Mobile Communications AB. All rights reserved.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -107,7 +108,7 @@ public class ExternalResourceManagerTest {
         int time = (int)Math.random();
         Map<String, Object> paramMap = new HashMap<String, Object>();
         paramMap.put("device", externalResourceId);
-        paramMap.put("time", time);
+        paramMap.put("timeout", time);
 
         // mock for reserve.
         mockForOperation(result, new Object[] { paramMap }, nodeName, RESERVE_METHOD);

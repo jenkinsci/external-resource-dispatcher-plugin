@@ -2,6 +2,7 @@
  *  The MIT License
  *
  *  Copyright 2011 Sony Ericsson Mobile Communications. All rights reserved.
+ *  Copyright 2012 Sony Mobile Communications AB. All rights reserved.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -226,7 +227,7 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
         /**
          * the key of the time parameter in sent json.
          */
-        private static final String TIME = "time";
+        private static final String TIMEOUT = "timeout";
 
         /**
          * the default port the rpc call.
@@ -279,7 +280,7 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
                 if (null != client && null != deviceId) {
                     Map<String, Object> params = new HashMap<String, Object>();
                     params.put(DEVICE, deviceId);
-                    params.put(TIME, seconds);
+                    params.put(TIMEOUT, seconds);
                     rpcRes = (RpcResult)client.invoke(RESERVE_METHOD, new Object[]{params}, RpcResult.class);
                 }
             } catch (JsonGenerationException jge) {
