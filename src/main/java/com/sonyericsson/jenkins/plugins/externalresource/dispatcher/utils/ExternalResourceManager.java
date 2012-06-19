@@ -281,6 +281,7 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
                     Map<String, Object> params = new HashMap<String, Object>();
                     params.put(DEVICE, deviceId);
                     params.put(TIMEOUT, seconds);
+                    logger.log(Level.FINE, "reserving: {0}", params.toString());
                     rpcRes = (RpcResult)client.invoke(RESERVE_METHOD, new Object[]{params}, RpcResult.class);
                 }
             } catch (JsonGenerationException jge) {

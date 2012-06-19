@@ -43,6 +43,8 @@ import hudson.model.queue.CauseOfBlockage;
 import hudson.model.queue.QueueTaskDispatcher;
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * The main veto engine. If a node has an available and matching resource, the resource will be reserved and OKd to be
@@ -53,14 +55,17 @@ import java.util.List;
 @Extension(ordinal = Constants.QTD_ORDINAL)
 public class ExternalResourceQueueTaskDispatcher extends QueueTaskDispatcher {
 
+    private static final Logger logger = Logger.getLogger(ExternalResourceQueueTaskDispatcher.class.getName());
+
     @Override
     public CauseOfBlockage canTake(Node node, Queue.BuildableItem item) {
-
+        logger.entering("ExternalResourceQueueTaskDispatcher", "canTake", new Object[]{node, item});
         // check whether there is already something reserved for use. skip the following step if so.
         // the cantake() method will be called several times, depending on how many available executors left.
         ReservedExternalResourceAction storage = getReservedExternalResourceAction(item);
         if (!storage.isEmpty()) { // if already something there.
             // return a blockage cause to avoid the executor joining to candidates list once we already have one.
+            logger.exiting("ExternalResourceQueueTaskDispatcher", "canTake", "BecauseAlreadyReserved");
             return new BecauseAlreadyReserved();
         }
 
@@ -71,6 +76,7 @@ public class ExternalResourceQueueTaskDispatcher extends QueueTaskDispatcher {
                 || selectionCriteria.getDeviceSelectionList().isEmpty()) {
             //Either it is not a buildable item that we are interested in, or it is a project that
             // doesn't have a configured criteria. So we say ok.
+            logger.exiting("ExternalResourceQueueTaskDispatcher", "canTake", "OK - not buildable or no selection");
             return null;
         }
 
@@ -80,12 +86,14 @@ public class ExternalResourceQueueTaskDispatcher extends QueueTaskDispatcher {
         List<ExternalResource> resources = availabilityFilter.getExternalResourcesList(node);
         if (resources == null || resources.isEmpty()) {
             //No resources configured, block the build on this node.
+            logger.exiting("ExternalResourceQueueTaskDispatcher", "canTake", "BecauseNoAvailableResources-1");
             return new BecauseNoAvailableResources(node);
         }
         //Filter out what is available
         resources = availabilityFilter.filterEnabledAndAvailable(resources);
         if (resources == null || resources.isEmpty()) {
             //No available resources, block the build on this node.
+            logger.exiting("ExternalResourceQueueTaskDispatcher", "canTake", "BecauseNoAvailableResources-2");
             return new BecauseNoAvailableResources(node);
         }
 
@@ -93,6 +101,7 @@ public class ExternalResourceQueueTaskDispatcher extends QueueTaskDispatcher {
 
         if (resources == null || resources.isEmpty()) {
             //No matching resources, block the build on this node.
+            logger.exiting("ExternalResourceQueueTaskDispatcher", "canTake", "BecauseNoMatchingResource");
             return new BecauseNoMatchingResource(node);
         }
 
@@ -102,11 +111,17 @@ public class ExternalResourceQueueTaskDispatcher extends QueueTaskDispatcher {
 
         for (ExternalResource resource : resources) {
             StashResult result = manager.reserve(node, resource, PluginImpl.getInstance().getReserveTime());
+            logger.log(Level.FINEST, "Reserve result for [{0}]: Status {1} code {2} message {3}",
+                    new Object[]{resource.getFullName(), result.getStatus().name(),
+                            result.getErrorCode(), result.getMessage(), });
             if (result != null && result.isOk()) {
                 reservedResource = resource;
                 StashInfo info = new StashInfo(result, getUrl(item.task));
                 reservedResource.setReserved(info);
+                logger.finest("reservation ok");
                 break;
+            } else {
+                logger.finest("Not reserved");
             }
         }
 
@@ -115,6 +130,7 @@ public class ExternalResourceQueueTaskDispatcher extends QueueTaskDispatcher {
             AdminNotifier.getInstance().notify(AdminNotifier.MessageType.WARNING, AdminNotifier.OperationType.RESERVE,
                     node, reservedResource, "Found one or more matching external resources but could not reserve any "
                             + "of them.");
+            logger.exiting("ExternalResourceQueueTaskDispatcher", "canTake", "BecauseNothingReserved");
             return new BecauseNothingReserved(node);
         }
 
@@ -123,6 +139,7 @@ public class ExternalResourceQueueTaskDispatcher extends QueueTaskDispatcher {
 
 
         //Everything is fine, now continue.
+        logger.exiting("ExternalResourceQueueTaskDispatcher", "canTake", "OK");
         return null;
     }
 
