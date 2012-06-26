@@ -2,6 +2,7 @@
  *  The MIT License
  *
  *  Copyright 2011 Sony Ericsson Mobile Communications. All rights reserved.
+ *  Copyright 2012 Sony Mobile Communications AB. All rights reserved.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -74,7 +75,7 @@ public class NoopExternalResourceManagerHudsonTest extends HudsonTestCase {
      * That a resource reservation times out after the specified interval.
      */
     public void testReserve() {
-        StashResult result = PluginImpl.getNoopResourceManager().reserve(slave, resource, 1);
+        StashResult result = PluginImpl.getNoopResourceManager().reserve(slave, resource, 1, "me");
         resource.setReserved(new StashInfo(result, "me"));
         assertTrue(result.isOk());
         try {

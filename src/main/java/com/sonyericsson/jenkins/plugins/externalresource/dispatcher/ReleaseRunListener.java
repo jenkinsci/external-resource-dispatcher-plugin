@@ -2,6 +2,7 @@
  *  The MIT License
  *
  *  Copyright 2011 Sony Ericsson Mobile Communications. All rights reserved.
+ *  Copyright 2012 Sony Mobile Communications AB. All rights reserved.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -35,6 +36,7 @@ import hudson.Extension;
 import hudson.model.AbstractBuild;
 import hudson.model.TaskListener;
 import hudson.model.listeners.RunListener;
+import jenkins.model.Jenkins;
 
 import java.io.PrintStream;
 import java.util.logging.Level;
@@ -90,7 +92,7 @@ public class ReleaseRunListener extends RunListener<AbstractBuild> {
             StashInfo lockInfo = nodeResource.getLocked();
             if (lockInfo != null) {
                 StashResult result = PluginImpl.getInstance().getManager().release(build.getBuiltOn(),
-                        nodeResource, lockInfo.getKey());
+                        nodeResource, lockInfo.getKey(), Jenkins.getInstance().getRootUrl() + build.getUrl());
                 if (result != null && result.isOk()) {
                     //Success!
                     logReleaseSuccess(build, buildResource, buildLogger);

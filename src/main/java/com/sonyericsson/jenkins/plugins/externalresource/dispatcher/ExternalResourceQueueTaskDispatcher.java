@@ -2,6 +2,7 @@
  *  The MIT License
  *
  *  Copyright 2011 Sony Ericsson Mobile Communications. All rights reserved.
+ *  Copyright 2012 Sony Mobile Communications AB. All rights reserved.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -41,6 +42,7 @@ import hudson.model.Node;
 import hudson.model.Queue;
 import hudson.model.queue.CauseOfBlockage;
 import hudson.model.queue.QueueTaskDispatcher;
+import jenkins.model.Jenkins;
 
 import java.util.List;
 import java.util.logging.Level;
@@ -110,7 +112,8 @@ public class ExternalResourceQueueTaskDispatcher extends QueueTaskDispatcher {
         ExternalResourceManager manager = PluginImpl.getInstance().getManager();
 
         for (ExternalResource resource : resources) {
-            StashResult result = manager.reserve(node, resource, PluginImpl.getInstance().getReserveTime());
+            StashResult result = manager.reserve(node, resource, PluginImpl.getInstance().getReserveTime(),
+                    Jenkins.getInstance().getRootUrl() + item.task.getUrl());
             logger.log(Level.FINEST, "Reserve result for [{0}]: Status {1} code {2} message {3}",
                     new Object[]{resource.getFullName(), result.getStatus().name(),
                             result.getErrorCode(), result.getMessage(), });

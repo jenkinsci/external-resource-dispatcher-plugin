@@ -178,6 +178,7 @@ public class ExternalResourceHttpCommands implements RootAction {
      * @param id       the id of the resource.
      * @param response the response handle to write to.
      * @param lockedBy a String describing what has locked the resource.
+     * @param clientInfo the information about the client that called this.
      * @throws IOException if so.
      * @see CliResponse
      */
@@ -186,11 +187,20 @@ public class ExternalResourceHttpCommands implements RootAction {
             @QueryParameter(value = "node", required = true) final String node,
             @QueryParameter(value = "id", required = true) final String id,
             @QueryParameter(value = "lockedBy", required = true) final String lockedBy,
+            @QueryParameter(value = "clientInfo", required = true) final String clientInfo,
         StaplerResponse response) throws IOException {
         Something something = new Something() {
             @Override
             public void doIt(ExternalResource resource, StaplerResponse response) throws IOException {
                 try {
+                    if (ErCliUtils.isRequestCircular(clientInfo)) {
+                        logger.log(Level.FINE, "Request was circular for: {0}", clientInfo);
+                        return;
+                    }
+                    if (logger.isLoggable(Level.FINE)) {
+                        logger.log(Level.FINE, "Locking resource: {0} on node: {1} with clientInfo: {2}",
+                                new Object[]{id, node, clientInfo, });
+                    }
                     StashInfo lockedInfo = new StashInfo(StashInfo.StashType.EXTERNAL, lockedBy, null, null);
                     resource.doLock(lockedInfo);
                     sendOk(response);
@@ -209,8 +219,9 @@ public class ExternalResourceHttpCommands implements RootAction {
      *
      * @param node     the node where the resource is located.
      * @param id       the id of the resource.
-     * @param response the response handle to write to.
      * @param reservedBy a String describing what has reserved the resource.
+     * @param clientInfo the information about the client that called this.
+     * @param response the response handle to write to.
      * @throws IOException if so.
      * @see CliResponse
      */
@@ -219,11 +230,21 @@ public class ExternalResourceHttpCommands implements RootAction {
             @QueryParameter(value = "node", required = true) final String node,
             @QueryParameter(value = "id", required = true) final String id,
             @QueryParameter(value = "reservedBy", required = true) final String reservedBy,
+            @QueryParameter(value = "clientInfo", required = true) final String clientInfo,
         StaplerResponse response) throws IOException {
         Something something = new Something() {
             @Override
             public void doIt(ExternalResource resource, StaplerResponse response) throws IOException {
                 try {
+                    if (ErCliUtils.isRequestCircular(clientInfo)) {
+                        logger.log(Level.FINE, "Request was circular for: {0} ", clientInfo);
+                        return;
+                    }
+
+                    if (logger.isLoggable(Level.FINE)) {
+                        logger.log(Level.FINE, "Reserving resource: {0} on node: {1} with clientInfo: {2}",
+                                new Object[]{id, node, clientInfo, });
+                    }
                     StashInfo reservedInfo = new StashInfo(StashInfo.StashType.EXTERNAL, reservedBy, null, null);
                     resource.doReserve(reservedInfo);
                     sendOk(response);
@@ -242,6 +263,7 @@ public class ExternalResourceHttpCommands implements RootAction {
      *
      * @param node     the node where the resource is located.
      * @param id       the id of the resource.
+     * @param clientInfo the information about the client that called this.
      * @param response the response handle to write to.
      * @throws IOException if so.
      * @see CliResponse
@@ -250,11 +272,20 @@ public class ExternalResourceHttpCommands implements RootAction {
     public void doReleaseResource(
             @QueryParameter(value = "node", required = true) final String node,
             @QueryParameter(value = "id", required = true) final String id,
+            @QueryParameter(value = "clientInfo", required = true) final String clientInfo,
         StaplerResponse response) throws IOException {
         Something something = new Something() {
             @Override
             public void doIt(ExternalResource resource, StaplerResponse response) throws IOException {
                 try {
+                    if (ErCliUtils.isRequestCircular(clientInfo)) {
+                        logger.log(Level.FINE, "Request was circular for: {0}", clientInfo);
+                        return;
+                    }
+                    if (logger.isLoggable(Level.FINE)) {
+                        logger.log(Level.FINE, "Releasing resource: {0} on node: {1} with clientInfo: {2}",
+                                new Object[]{id, node, clientInfo, });
+                    }
                     resource.doRelease();
                     sendOk(response);
                 } catch (IOException e) {

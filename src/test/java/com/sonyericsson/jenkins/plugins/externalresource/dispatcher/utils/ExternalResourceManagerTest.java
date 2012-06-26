@@ -30,7 +30,9 @@ import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
 import static org.mockito.Mockito.when;
 
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.MockUtils;
 import hudson.model.Computer;
+import hudson.model.Hudson;
 import hudson.model.Node;
 
 import java.io.IOException;
@@ -39,6 +41,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.sf.json.JSONObject;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,12 +57,12 @@ import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.Extern
         DeviceMonitorExternalResourceManager.RpcResult;
 
 /**
- * the unit test for the external resource manager.
- * @author Zhang Leimeng
+ * The unit test for the external resource manager.
  *
+ * @author Zhang Leimeng
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ JsonRpcUtil.class, Node.class })
+@PrepareForTest({ JsonRpcUtil.class, Node.class, Hudson.class })
 public class ExternalResourceManagerTest {
 
     /**
@@ -82,6 +85,9 @@ public class ExternalResourceManagerTest {
      */
     @Test
     public void testReserve() {
+
+        Hudson mockHudson = MockUtils.mockHudson();
+        when(mockHudson.getRootUrl()).thenReturn("jenkins");
         // the external resource we mocked.
         String externalResourceId = "id_1";
         String externalResourceName = "id_1";
@@ -109,16 +115,20 @@ public class ExternalResourceManagerTest {
         Map<String, Object> paramMap = new HashMap<String, Object>();
         paramMap.put("device", externalResourceId);
         paramMap.put("timeout", time);
+        JSONObject clientInfo = new JSONObject();
+                    clientInfo.put("id", "jenkins");
+                    clientInfo.put("url", "me");
+        paramMap.put("clientInfo", clientInfo);
 
         // mock for reserve.
-        mockForOperation(result, new Object[] { paramMap }, nodeName, RESERVE_METHOD);
+        mockForOperation(result, new Object[]{paramMap}, nodeName, RESERVE_METHOD);
 
         // mock a node which has hostname.
         Node n = mockNode(nodeName);
 
         ExternalResourceManager rpcCallERM = new ExternalResourceManager.DeviceMonitorExternalResourceManager();
 
-        StashResult sRes = rpcCallERM.reserve(n, er, time);
+        StashResult sRes = rpcCallERM.reserve(n, er, time, "me");
 
         assertEquals(code, sRes.getErrorCode());
         assertEquals(message, sRes.getMessage());
@@ -134,6 +144,8 @@ public class ExternalResourceManagerTest {
      */
     @Test
     public void testLock() {
+        Hudson mockHudson = MockUtils.mockHudson();
+        when(mockHudson.getRootUrl()).thenReturn("jenkins");
         // the external resource we mocked.
         String externalResourceId = "id_1";
         String externalResourceName = "id_1";
@@ -156,6 +168,10 @@ public class ExternalResourceManagerTest {
         Map<String, Object> paramMap = new HashMap<String, Object>();
         paramMap.put("device", externalResourceId);
         paramMap.put("key", reserveKey);
+        JSONObject clientInfo = new JSONObject();
+                    clientInfo.put("id", "jenkins");
+                    clientInfo.put("url", "me");
+        paramMap.put("clientInfo", clientInfo);
 
         // mock for reserve.
         mockForOperation(result, new Object[]{paramMap}, nodeName, LOCK_METHOD);
@@ -165,7 +181,7 @@ public class ExternalResourceManagerTest {
 
         ExternalResourceManager rpcCallERM = new ExternalResourceManager.DeviceMonitorExternalResourceManager();
 
-        StashResult sRes = rpcCallERM.lock(n, er, reserveKey);
+        StashResult sRes = rpcCallERM.lock(n, er, reserveKey, "me");
 
         assertEquals(code, sRes.getErrorCode());
         assertEquals(message, sRes.getMessage());
@@ -179,6 +195,8 @@ public class ExternalResourceManagerTest {
      */
     @Test
     public void testRelease() {
+        Hudson mockHudson = MockUtils.mockHudson();
+        when(mockHudson.getRootUrl()).thenReturn("jenkins");
         // the external resource we mocked.
         String externalResourceId = "id_1";
         String externalResourceName = "id_1";
@@ -202,6 +220,10 @@ public class ExternalResourceManagerTest {
         Map<String, Object> paramMap = new HashMap<String, Object>();
         paramMap.put("device", externalResourceId);
         paramMap.put("key", key);
+        JSONObject clientInfo = new JSONObject();
+                    clientInfo.put("id", "jenkins");
+                    clientInfo.put("url", "me");
+        paramMap.put("clientInfo", clientInfo);
 
         // mock for reserve.
         mockForOperation(result, new Object[] { paramMap }, nodeName, RELEASE_METHOD);
@@ -211,7 +233,7 @@ public class ExternalResourceManagerTest {
 
         ExternalResourceManager rpcCallERM = new ExternalResourceManager.DeviceMonitorExternalResourceManager();
 
-        StashResult sRes = rpcCallERM.release(n, er, key);
+        StashResult sRes = rpcCallERM.release(n, er, key, "me");
 
         assertEquals(code, sRes.getErrorCode());
         assertEquals(Status.OK, sRes.getStatus());

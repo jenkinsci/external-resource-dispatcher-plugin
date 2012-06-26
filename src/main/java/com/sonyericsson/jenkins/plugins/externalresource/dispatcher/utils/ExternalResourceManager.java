@@ -33,8 +33,10 @@ import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashRe
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashResult.Status;
 import hudson.Extension;
 import hudson.ExtensionPoint;
+import hudson.model.Hudson;
 import hudson.model.Node;
 import hudson.triggers.Trigger;
+import net.sf.json.JSONObject;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonProcessingException;
@@ -76,20 +78,22 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
      * @param node     the node to communicate with.
      * @param resource the resource to reserve.
      * @param seconds  the number of seconds the lease should be.
+     * @param reservedBy a String describing what reserved the resource.
      * @return the result.
      */
-    public abstract StashResult reserve(Node node, ExternalResource resource, int seconds);
+    public abstract StashResult reserve(Node node, ExternalResource resource, int seconds, String reservedBy);
 
     /**
      * Locks the resource (permanently) until it is unlocked, no other build should be able to use this resource.
      *
      * @param node     the node holding the resource.
      * @param resource the resource to lock.
-     * @param key      the key to be able to lock it (retained from {@link #reserve(hudson.model.Node,
-     *                 com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource, int)}).
+     * @param key      the key to be able to lock it (retained from
+     *                 {@link #reserve(hudson.model.Node, ExternalResource, int, String)}).
+     * @param lockedBy a String describing what locked the resource.
      * @return the result.
      */
-    public abstract StashResult lock(Node node, ExternalResource resource, String key);
+    public abstract StashResult lock(Node node, ExternalResource resource, String key, String lockedBy);
 
     /**
      * Releases the resource, other builds can now use it.
@@ -99,10 +103,11 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
      * @param key      the key to unlock the resource with (retained from a previous call to
      *                 {@link  #lock(hudson.model.Node,
      *                 com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource,
-     *                 String)}.
+     *                 String, String)}.
+     * @param releasedBy a String describing what released the resource.
      * @return the result.
      */
-    public abstract StashResult release(Node node, ExternalResource resource, String key);
+    public abstract StashResult release(Node node, ExternalResource resource, String key, String releasedBy);
 
     /**
      * Answers true if these operations are allowed using this ExternalResourceManager.
@@ -126,19 +131,19 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
         protected final StashResult okResult = new StashResult("noop", "noop");
 
         @Override
-        public StashResult reserve(Node node, ExternalResource resource, int seconds) {
+        public StashResult reserve(Node node, ExternalResource resource, int seconds, String reservedBy) {
             Trigger.timer.schedule(new ReservationTimeoutTask(node.getNodeName(), resource.getId()),
                     TimeUnit.SECONDS.toMillis(seconds));
             return okResult;
         }
 
         @Override
-        public StashResult lock(Node node, ExternalResource resource, String key) {
+        public StashResult lock(Node node, ExternalResource resource, String key, String lockedBy) {
             return okResult;
         }
 
         @Override
-        public StashResult release(Node node, ExternalResource resource, String key) {
+        public StashResult release(Node node, ExternalResource resource, String key, String releasedBy) {
             return okResult;
         }
 
@@ -230,6 +235,21 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
         private static final String TIMEOUT = "timeout";
 
         /**
+         * the key of the clientInfo parameter in sent json.
+         */
+        private static final String CLIENT_INFO = "clientInfo";
+
+        /**
+         * the key of the id parameter in sent json.
+         */
+        private static final String ID = "id";
+
+        /**
+         * the key of the url parameter in sent json.
+         */
+        private static final String URL = "url";
+
+        /**
          * the default port the rpc call.
          */
         private static final String PORT = "8080";
@@ -271,7 +291,7 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
         }
 
         @Override
-        public StashResult reserve(Node node, ExternalResource resource, int seconds) {
+        public StashResult reserve(Node node, ExternalResource resource, int seconds, String reservedBy) {
             RpcResult rpcRes = null;
             String deviceId = getDeviceId(resource);
             try {
@@ -281,6 +301,10 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
                     Map<String, Object> params = new HashMap<String, Object>();
                     params.put(DEVICE, deviceId);
                     params.put(TIMEOUT, seconds);
+                    JSONObject clientInfo = new JSONObject();
+                    clientInfo.put(ID, Hudson.getInstance().getRootUrl());
+                    clientInfo.put(URL, reservedBy);
+                    params.put(CLIENT_INFO, clientInfo);
                     logger.log(Level.FINE, "reserving: {0}", params.toString());
                     rpcRes = (RpcResult)client.invoke(RESERVE_METHOD, new Object[]{params}, RpcResult.class);
                 }
@@ -316,7 +340,7 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
         }
 
         @Override
-        public StashResult lock(Node node, ExternalResource resource, String key) {
+        public StashResult lock(Node node, ExternalResource resource, String key, String lockedBy) {
             RpcResult rpcRes = null;
             String deviceId = getDeviceId(resource);
 
@@ -327,6 +351,11 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
                     Map<String, Object> params = new HashMap<String, Object>();
                     params.put(DEVICE, deviceId);
                     params.put(RESERVE_KEY, key);
+                    JSONObject clientInfo = new JSONObject();
+                    clientInfo.put(ID, Hudson.getInstance().getRootUrl());
+                    clientInfo.put(URL, lockedBy);
+                    params.put(CLIENT_INFO, clientInfo);
+                    logger.log(Level.FINE, "locking: {0}", params.toString());
                     rpcRes = (RpcResult)client.invoke(LOCK_METHOD, new Object[]{params}, RpcResult.class);
                 }
             } catch (JsonGenerationException jge) {
@@ -367,7 +396,7 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
         }
 
         @Override
-        public StashResult release(Node node, ExternalResource resource, String key) {
+        public StashResult release(Node node, ExternalResource resource, String key, String releasedBy) {
             RpcResult rpcRes = null;
             String deviceId = getDeviceId(resource);
 
@@ -377,6 +406,11 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
                     Map<String, Object> params = new HashMap<String, Object>();
                     params.put(DEVICE, deviceId);
                     params.put(RESERVE_KEY, key);
+                    JSONObject clientInfo = new JSONObject();
+                    clientInfo.put(ID, Hudson.getInstance().getRootUrl());
+                    clientInfo.put(URL, releasedBy);
+                    params.put(CLIENT_INFO, clientInfo);
+                    logger.log(Level.FINE, "releasing: {0}", params.toString());
                     rpcRes = (RpcResult)client.invoke(RELEASE_METHOD, new Object[]{params}, RpcResult.class);
                 }
             } catch (JsonGenerationException jge) {

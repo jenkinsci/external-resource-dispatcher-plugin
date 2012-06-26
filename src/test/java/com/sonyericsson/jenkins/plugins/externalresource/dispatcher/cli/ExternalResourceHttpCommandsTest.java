@@ -2,6 +2,7 @@
  *  The MIT License
  *
  *  Copyright 2011 Sony Ericsson Mobile Communications. All rights reserved.
+ *  Copyright 2012 Sony Mobile Communications AB. All rights reserved.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -202,8 +203,11 @@ public class ExternalResourceHttpCommandsTest {
         ExternalResource resource = new ExternalResource("Temp", "Temp", id,
                 false, Collections.<MetadataValue>emptyList());
         TreeStructureUtil.addValue(container, resource, "test", "path");
+        JSONObject clientInfo = new JSONObject();
+        clientInfo.put("id", Hudson.getInstance().getRootUrl());
+        clientInfo.put("url", "");
 
-        action.doLockResource("testNode", id, "ILockedIt", response);
+        action.doLockResource("testNode", id, "ILockedIt", clientInfo.toString(), response);
 
         JSONObject expectedJson = new JSONObject();
         expectedJson.put("type", "ok");
@@ -213,7 +217,7 @@ public class ExternalResourceHttpCommandsTest {
         assertNotNull(resource.getLocked());
         assertEquals("ILockedIt", resource.getLocked().getStashedBy());
 
-        action.doReleaseResource("testNode", id, response);
+        action.doReleaseResource("testNode", id, clientInfo.toString(), response);
         assertNull(resource.getLocked());
         verify(container, times(2)).save();
         verify(out, times(2)).print(eq(expectedJson.toString()));
@@ -231,7 +235,10 @@ public class ExternalResourceHttpCommandsTest {
                 false, Collections.<MetadataValue>emptyList());
         TreeStructureUtil.addValue(container, resource, "test", "path");
 
-        action.doReserveResource("testNode", id, "IReservedIt", response);
+        JSONObject clientInfo = new JSONObject();
+        clientInfo.put("id", Hudson.getInstance().getRootUrl());
+        clientInfo.put("url", "");
+        action.doReserveResource("testNode", id, "IReservedIt", clientInfo.toString(), response);
 
         JSONObject expectedJson = new JSONObject();
         expectedJson.put("type", "ok");
@@ -261,6 +268,9 @@ public class ExternalResourceHttpCommandsTest {
         ExternalResource resource = new ExternalResource("Temp", "Temp", id,
                 false, Collections.<MetadataValue>emptyList());
         TreeStructureUtil.addValue(container, resource, "test", "path");
-        action.doLockResource("testNode", id, "IReservedIt", response);
+        JSONObject clientInfo = new JSONObject();
+        clientInfo.put("id", Hudson.getInstance().getRootUrl());
+        clientInfo.put("url", "");
+        action.doLockResource("testNode", id, "IReservedIt", clientInfo.toString(), response);
     }
 }

@@ -2,6 +2,7 @@
  *  The MIT License
  *
  *  Copyright 2011 Sony Ericsson Mobile Communications. All rights reserved.
+ *  Copyright 2012 Sony Mobile Communications AB. All rights reserved.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +28,10 @@ import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.Externa
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.AvailabilityFilter;
 import hudson.model.Hudson;
 import hudson.model.Node;
+import net.sf.json.JSON;
+import net.sf.json.JSONException;
+import net.sf.json.JSONObject;
+import net.sf.json.JSONSerializer;
 import org.kohsuke.args4j.CmdLineException;
 
 /**
@@ -57,6 +62,36 @@ public final class ErCliUtils {
         } else {
             throw new CmdLineException(null, "No node with name " + nodeName + " exists on this Jenkins server.");
         }
+    }
+
+    /**
+     * Checks if a request came originally from Jenkins itself.
+     * If so, the request should be ignored.
+     * @param clientInfo the JSON String containing information on the client that sent the request.
+     * @return true if the client is Jenkins, false if not.
+     */
+    public static boolean isRequestCircular(String clientInfo) {
+        JSON json = JSONSerializer.toJSON(clientInfo);
+        JSONObject obj = null;
+        if (json instanceof JSONObject) {
+            obj = (JSONObject)json;
+        }
+        if (obj == null) {
+            return false;
+        }
+        String clientId = "";
+        try {
+            clientId = obj.getString("id");
+        } catch (JSONException e) {
+            return false;
+        }
+
+        String rootUrl = Hudson.getInstance().getRootUrl();
+        if (clientId.equals(rootUrl)) {
+            //Request came from Jenkins originally, do nothing.
+            return true;
+        }
+        return false;
     }
 
     /**

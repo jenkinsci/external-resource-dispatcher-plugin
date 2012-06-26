@@ -40,7 +40,7 @@ import java.util.logging.Logger;
 public class LockExternalResourceCommand extends CLICommand {
     private static final Logger logger = Logger.getLogger(LockExternalResourceCommand.class.getName());
 
-    //CS IGNORE VisibilityModifier FOR NEXT 20 LINES. REASON: Standard Jenkins Args4J design pattern.
+    //CS IGNORE VisibilityModifier FOR NEXT 35 LINES. REASON: Standard Jenkins Args4J design pattern.
     /**
      * The name of the node.
      */
@@ -54,11 +54,18 @@ public class LockExternalResourceCommand extends CLICommand {
     public String id;
 
     /**
-     * What locked the resource.
+     * Information text regarding what locked the resource.
      */
     @Option(required = true, name = "-lockedBy",
             usage = "Information text to Jenkins detailing who locked the resource")
     public String lockedBy;
+
+    /**
+     * What locked the resource.
+     */
+    @Option(required = true, name = "-clientInfo",
+            usage = "Information regarding the client that locked the resource")
+    public String clientInfo;
 
 
     @Override
@@ -68,6 +75,9 @@ public class LockExternalResourceCommand extends CLICommand {
 
     @Override
     protected int run() throws Exception {
+        if (ErCliUtils.isRequestCircular(clientInfo)) {
+            return 0;
+        }
         ExternalResource er = ErCliUtils.findExternalResource(nodeName, id);
         StashInfo lockedInfo = new StashInfo(StashInfo.StashType.EXTERNAL, lockedBy, null, null);
         er.doLock(lockedInfo);

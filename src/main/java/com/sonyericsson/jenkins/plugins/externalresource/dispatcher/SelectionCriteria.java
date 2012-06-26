@@ -2,6 +2,7 @@
  *  The MIT License
  *
  *  Copyright 2011 Sony Ericsson Mobile Communications. All rights reserved.
+ *  Copyright 2012 Sony Mobile Communications AB. All rights reserved.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -41,6 +42,7 @@ import hudson.model.BuildListener;
 import hudson.model.Node;
 
 
+import jenkins.model.Jenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.export.ExportedBean;
 
@@ -163,7 +165,8 @@ public class SelectionCriteria extends JobProperty<AbstractProject<?, ?>> {
         //If the phone is not reserved anymore, try to reserve it again.
         //If it cannot be reserved, fail the build.
         if (reservedInfo == null) {
-            StashResult result = resourceManager.reserve(node, reserved, PluginImpl.getInstance().getReserveTime());
+            StashResult result = resourceManager.reserve(node, reserved, PluginImpl.getInstance().getReserveTime(),
+                    build.getDisplayName());
             if (result == null || !result.isOk()) {
                 AdminNotifier.getInstance().notify(AdminNotifier.MessageType.ERROR,
                         AdminNotifier.OperationType.RESERVE, node, reserved,
@@ -178,7 +181,8 @@ public class SelectionCriteria extends JobProperty<AbstractProject<?, ?>> {
             }
         }
         //we have a reserved phone, now lock it.
-        StashResult lockResult = resourceManager.lock(node, reserved, reservedInfo.getKey());
+        StashResult lockResult = resourceManager.lock(node, reserved, reservedInfo.getKey(),
+                Jenkins.getInstance().getRootUrl() + build.getUrl());
         if (lockResult == null || !lockResult.isOk()) {
             AdminNotifier.getInstance().notify(AdminNotifier.MessageType.ERROR, AdminNotifier.OperationType.LOCK,
                     node, reserved, "Could not lock device, aborting the build: " + buildName);

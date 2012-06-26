@@ -39,7 +39,7 @@ import java.util.logging.Logger;
 public class ReleaseExternalResourceCommand extends CLICommand {
     private static final Logger logger = Logger.getLogger(ReleaseExternalResourceCommand.class.getName());
 
-    //CS IGNORE VisibilityModifier FOR NEXT 15 LINES. REASON: Standard Jenkins Args4J design pattern.
+    //CS IGNORE VisibilityModifier FOR NEXT 22 LINES. REASON: Standard Jenkins Args4J design pattern.
     /**
      * The name of the node.
      */
@@ -52,6 +52,12 @@ public class ReleaseExternalResourceCommand extends CLICommand {
     @Option(required = true, name = "-id", usage = "The id of the external resource")
     public String id;
 
+    /**
+     * What released the resource.
+     */
+    @Option(required = true, name = "-clientInfo",
+            usage = "Information regarding the client that released the resource")
+    public String clientInfo;
 
     @Override
     public String getShortDescription() {
@@ -60,6 +66,9 @@ public class ReleaseExternalResourceCommand extends CLICommand {
 
     @Override
     protected int run() throws Exception {
+        if (ErCliUtils.isRequestCircular(clientInfo)) {
+            return 0;
+        }
         ExternalResource er = ErCliUtils.findExternalResource(nodeName, id);
         er.doRelease();
         return 0;
