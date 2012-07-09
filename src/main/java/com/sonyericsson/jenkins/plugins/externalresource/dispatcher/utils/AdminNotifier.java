@@ -2,6 +2,7 @@
  *  The MIT License
  *
  *  Copyright 2011 Sony Ericsson Mobile Communications. All rights reserved.
+ *  Copyright 2012 Sony Mobile Communications AB. All rights reserved.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -126,8 +127,14 @@ public final class AdminNotifier {
      */
     private synchronized void recordFile(String msg) {
         try {
-            raf.seek(raf.length());
-            raf.writeBytes(msg);
+            if (raf != null) {
+                raf.seek(raf.length());
+                raf.writeBytes(msg);
+            } else {
+                logger.log(Level.WARNING,
+                        "Failed to record the following message into admin notifier file: {0} since the file "
+                            + "couldn't be opened", msg);
+            }
         } catch (IOException e) {
             logger.log(Level.WARNING, MessageFormat.format(
                     "Failed to record the following message into admin notifier file: {0}",
