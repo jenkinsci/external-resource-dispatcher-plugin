@@ -193,7 +193,8 @@ public class ExternalResourceHttpCommandsTest {
     }
 
     /**
-     * Happy test for {@link ExternalResourceHttpCommands#doEnable(String, String, org.kohsuke.stapler.StaplerResponse)}.
+     * Happy test for {@link ExternalResourceHttpCommands#
+     * doLockResource(String, String, String, String, org.kohsuke.stapler.StaplerResponse)} .
      *
      * @throws Exception if so.
      */
@@ -224,7 +225,9 @@ public class ExternalResourceHttpCommandsTest {
     }
 
     /**
-     * Happy test for {@link ExternalResourceHttpCommands#doEnable(String, String, org.kohsuke.stapler.StaplerResponse)}.
+     * Happy test for
+     * {@link ExternalResourceHttpCommands#
+     * doReserveResource(String, String, String, String, org.kohsuke.stapler.StaplerResponse)}.
      *
      * @throws Exception if so.
      */
@@ -239,6 +242,62 @@ public class ExternalResourceHttpCommandsTest {
         clientInfo.put("id", Hudson.getInstance().getRootUrl());
         clientInfo.put("url", "");
         action.doReserveResource("testNode", id, "IReservedIt", clientInfo.toString(), response);
+
+        JSONObject expectedJson = new JSONObject();
+        expectedJson.put("type", "ok");
+        expectedJson.put("errorCode", 0);
+        expectedJson.put("message", "OK");
+
+        assertNotNull(resource.getReserved());
+        assertEquals("IReservedIt", resource.getReserved().getStashedBy());
+
+        verify(out).print(eq(expectedJson.toString()));
+    }
+
+    /**
+     * Happy test for when clientInfo does not contain the correct key-value pairs.
+     * It should be possible to reserve anyway, clientInfo should just prevent circular calls from
+     * Jenkins to happen.
+     * @throws Exception if so.
+     */
+    @Test
+    public void testDoReserveResourceWithBadClientInfo() throws Exception {
+        String id = "12345678";
+        ExternalResource resource = new ExternalResource("Temp", "Temp", id,
+                false, Collections.<MetadataValue>emptyList());
+        TreeStructureUtil.addValue(container, resource, "test", "path");
+
+        JSONObject clientInfo = new JSONObject();
+        clientInfo.put("something", "Hello");
+        clientInfo.put("somethingelse", ".");
+        action.doReserveResource("testNode", id, "IReservedIt", clientInfo.toString(), response);
+
+        JSONObject expectedJson = new JSONObject();
+        expectedJson.put("type", "ok");
+        expectedJson.put("errorCode", 0);
+        expectedJson.put("message", "OK");
+
+        assertNotNull(resource.getReserved());
+        assertEquals("IReservedIt", resource.getReserved().getStashedBy());
+
+        verify(out).print(eq(expectedJson.toString()));
+    }
+
+    /**
+     * Happy test for when clientInfo is null.
+     * It should be possible to reserve anyway, clientInfo should just prevent circular calls from
+     * Jenkins to happen.
+     *
+     * @throws Exception if so.
+     */
+    @Test
+    public void testDoReserveResourceWithNullClientInfo() throws Exception {
+        String id = "12345678";
+        ExternalResource resource = new ExternalResource("Temp", "Temp", id,
+                false, Collections.<MetadataValue>emptyList());
+        TreeStructureUtil.addValue(container, resource, "test", "path");
+
+        action.doReserveResource("testNode", id, "IReservedIt", null, response);
 
         JSONObject expectedJson = new JSONObject();
         expectedJson.put("type", "ok");
