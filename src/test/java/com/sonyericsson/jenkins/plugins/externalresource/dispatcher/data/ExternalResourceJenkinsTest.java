@@ -2,6 +2,7 @@
  *  The MIT License
  *
  *  Copyright 2011 Sony Ericsson Mobile Communications. All rights reserved.
+ *  Copyright 2012 Sony Mobile Communications AB. All rights reserved.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +24,10 @@
  */
 package com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data;
 
+import com.gargoylesoftware.htmlunit.html.DomNode;
+import com.gargoylesoftware.htmlunit.html.DomNodeList;
+import com.gargoylesoftware.htmlunit.html.HtmlElement;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.sonyericsson.hudson.plugins.metadata.cli.HttpCliRootAction;
 import com.sonyericsson.hudson.plugins.metadata.model.MetadataNodeProperty;
 import com.sonyericsson.hudson.plugins.metadata.model.values.AbstractMetadataValue;
@@ -66,7 +71,7 @@ import static org.mockito.Mockito.when;
 /**
  * {@link HudsonTestCase}s for {@link ExternalResource}.
  *
- * @author Robert Sandell &lt;robert.sandell@sonyericsson.com&gt;
+ * @author Robert Sandell &lt;robert.sandell@sonymobile.com&gt;
  */
 public class ExternalResourceJenkinsTest extends HudsonTestCase {
     private DumbSlave slave;
@@ -218,5 +223,89 @@ public class ExternalResourceJenkinsTest extends HudsonTestCase {
         TreeStructureUtil.addValue(resource, "yes", "description", "is", "matching");
         TreeStructureUtil.addValue(property, resource, "attached-devices", "test");
         Mailer.descriptor().setHudsonUrl(this.getURL().toString());
+    }
+
+    /**
+     * Tests that the Disable button is visible on the node page.
+     *
+     * @throws Exception if so.
+     */
+    public void testCanEnableDisableOnNode() throws Exception {
+        slave = this.createOnlineSlave();
+        property = new MetadataNodeProperty();
+        ExternalResource value = new ExternalResource("device1", "d1");
+        TreeStructureUtil.addValue(value, "One", "The product version", "product", "version");
+        ExternalResourceTreeNode tn = new ExternalResourceTreeNode("attached-devices");
+        tn.addChild(value);
+        TreeStructureUtil.addValue(property, tn, false, "external");
+        slave.getNodeProperties().add(property);
+
+        WebClient web = createWebClient();
+        HtmlPage page = web.getPage(slave);
+        DomNode text = getTextElement(page.getDocumentElement(), "external.attached-devices.device1");
+        assertNotNull("Expected to find the device's name on the page", text);
+        HtmlElement el = (HtmlElement)text.getParentNode();
+        List<HtmlElement> buttons = el.getHtmlElementsByTagName("button");
+        assertEquals(1, buttons.size());
+        assertEquals("Disable", buttons.get(0).getFirstChild().asText());
+    }
+
+    /**
+     * Tests that the Disable button is not on the build metadata page.
+     *
+     * @throws Exception if so.
+     */
+    public void testCantEnableDisableOnBuild() throws Exception {
+        this.configRoundtrip();
+        slave = this.createOnlineSlave();
+        property = new MetadataNodeProperty();
+        ExternalResource value = new ExternalResource("device1", "d1");
+        TreeStructureUtil.addValue(value, "One", "The product version", "product", "version");
+        ExternalResourceTreeNode tn = new ExternalResourceTreeNode("attached-devices");
+        tn.addChild(value);
+        TreeStructureUtil.addValue(property, tn, false, "external");
+        slave.getNodeProperties().add(property);
+
+        FreeStyleProject project = this.createFreeStyleProject();
+        StringDeviceSelection selection = new StringDeviceSelection("product.version", "One");
+        LinkedList<AbstractDeviceSelection> list = new LinkedList<AbstractDeviceSelection>();
+        list.add(selection);
+        project.addProperty(new SelectionCriteria(true, list));
+        FreeStyleBuild build = this.buildAndAssertSuccess(project);
+
+
+        WebClient web = createWebClient();
+        HtmlPage page = web.getPage(build, "metadata");
+        DomNode text = getTextElement(page.getDocumentElement(), "external-resources.locked");
+        assertNotNull("Expected to find the device's name on the page", text);
+        HtmlElement el = (HtmlElement)text.getParentNode();
+        List<HtmlElement> buttons = el.getHtmlElementsByTagName("button");
+        assertEquals("Expected no buttons on the resource row!", 0, buttons.size());
+    }
+
+    /**
+     * Finds the DomNode beneath parent that has no children
+     * and the provided text is returned from {@link DomNode#asText()}.
+     *
+     * @param parent the base parent.
+     * @param needle the text to find.
+     * @return the node that is the text or null if nothing was found.
+     */
+    private DomNode getTextElement(DomNode parent, String needle) {
+        DomNodeList<DomNode> nodes = parent.getChildNodes();
+        for (int i = 0; i < nodes.getLength(); i++) {
+            DomNode node = nodes.get(i);
+            if (node.hasChildNodes()) {
+                DomNode text = getTextElement(node, needle);
+                if (text != null) {
+                    return text;
+                }
+            } else  {
+                if (needle.equals(node.asText())) {
+                    return node;
+                }
+            }
+        }
+        return null;
     }
 }

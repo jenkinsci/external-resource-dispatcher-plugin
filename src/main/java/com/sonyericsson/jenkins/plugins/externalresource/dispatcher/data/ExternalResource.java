@@ -26,6 +26,7 @@ package com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data;
 
 import com.sonyericsson.hudson.plugins.metadata.model.JsonUtils;
 import com.sonyericsson.hudson.plugins.metadata.model.MetadataContainer;
+import com.sonyericsson.hudson.plugins.metadata.model.MetadataNodeProperty;
 import com.sonyericsson.hudson.plugins.metadata.model.MetadataParent;
 import com.sonyericsson.hudson.plugins.metadata.model.values.AbstractMetadataValue;
 import com.sonyericsson.hudson.plugins.metadata.model.values.MetadataValue;
@@ -335,9 +336,24 @@ public class ExternalResource extends TreeNodeMetadataValue {
      * @see #getACL()
      * @see ACL#hasPermission(hudson.security.Permission)
      */
-    @SuppressWarnings("unused")
     public boolean hasEnableDisablePermission() {
         return getACL().hasPermission(PluginImpl.ENABLE_DISABLE_EXTERNAL_RESOURCE);
+    }
+
+    /**
+     * Control method to see if the resource can be enabled/disabled or not.
+     * Checks {@link #hasEnableDisablePermission()} and that the container is a {@link MetadataNodeProperty}.
+     * Otherwise the Enable/Disable button should not be shown.
+     *
+     * @return true if so.
+     */
+    @SuppressWarnings("unused")
+    public boolean canEnableDisable() {
+        if (hasEnableDisablePermission()) {
+            MetadataContainer<MetadataValue> container = getContainer();
+            return container != null && container instanceof MetadataNodeProperty;
+        }
+        return false;
     }
 
     /**

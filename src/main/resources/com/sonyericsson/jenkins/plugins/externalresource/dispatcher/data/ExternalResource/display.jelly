@@ -31,7 +31,7 @@
         <th align="left" valign="top">
             <img src="${imagesURL}/16x16/computer.png" alt="" height="12" width="12"/>
             ${it.fullName}
-            <j:if test="${it.hasEnableDisablePermission()}">
+            <j:if test="${it.canEnableDisable()}">
                 <script>
                     function disableOrEnable${it.id}() {
                     var er${it.id} = <st:bind value="${it}"/>
