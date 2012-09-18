@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static com.sonyericsson.hudson.plugins.metadata.cli.CliResponse.sendIgnored;
 import static com.sonyericsson.hudson.plugins.metadata.cli.CliResponse.sendOk;
 import static com.sonyericsson.hudson.plugins.metadata.cli.CliResponse.sendResponse;
 
@@ -195,6 +196,7 @@ public class ExternalResourceHttpCommands implements RootAction {
                 try {
                     if (ErCliUtils.isRequestCircular(clientInfo)) {
                         logger.log(Level.FINE, "Request was circular for: {0}", clientInfo);
+                        sendIgnored(response);
                         return;
                     }
                     if (logger.isLoggable(Level.FINE)) {
@@ -238,6 +240,7 @@ public class ExternalResourceHttpCommands implements RootAction {
                 try {
                     if (ErCliUtils.isRequestCircular(clientInfo)) {
                         logger.log(Level.FINE, "Request was circular for: {0} ", clientInfo);
+                        sendIgnored(response);
                         return;
                     }
 
@@ -280,6 +283,7 @@ public class ExternalResourceHttpCommands implements RootAction {
                 try {
                     if (ErCliUtils.isRequestCircular(clientInfo)) {
                         logger.log(Level.FINE, "Request was circular for: {0}", clientInfo);
+                        sendIgnored(response);
                         return;
                     }
                     if (logger.isLoggable(Level.FINE)) {
