@@ -2,6 +2,7 @@
  *  The MIT License
  *
  *  Copyright 2011 Sony Ericsson Mobile Communications. All rights reserved.
+ *  Copyright 2012 Sony Mobile Communications AB. All rights reserved.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -91,8 +92,9 @@ public final class JsonRpcUtil {
      * object. by doing so, the object[] will cast to be one jsonObject if
      * there is only one element inside. or it will become one jsonArray
      * which is expected to be jsonObject.
-     * Eg. it will return {"device":"12346579", "timeout":10} than
-     * [{"device":"12346579", "timeout":10}]
+     * Eg. it will return {"resource":"12346579", "timeout":10} than
+     * [{"resource":"12346579", "timeout":10}]
+     *
      * @return the customized {@link ObjectMapper} which can help do the json rpc call.
      */
     public static ObjectMapper customizeObjectMapper() {

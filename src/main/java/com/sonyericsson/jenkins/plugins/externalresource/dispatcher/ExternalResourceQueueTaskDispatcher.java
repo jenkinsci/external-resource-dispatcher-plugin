@@ -74,8 +74,8 @@ public class ExternalResourceQueueTaskDispatcher extends QueueTaskDispatcher {
         SelectionCriteria selectionCriteria = getSelectionCriteria(item.task);
         if (selectionCriteria == null
                 || !selectionCriteria.getSelectionEnabled()
-                || selectionCriteria.getDeviceSelectionList() == null
-                || selectionCriteria.getDeviceSelectionList().isEmpty()) {
+                || selectionCriteria.getResourceSelectionList() == null
+                || selectionCriteria.getResourceSelectionList().isEmpty()) {
             //Either it is not a buildable item that we are interested in, or it is a project that
             // doesn't have a configured criteria. So we say ok.
             logger.exiting("ExternalResourceQueueTaskDispatcher", "canTake", "OK - not buildable or no selection");

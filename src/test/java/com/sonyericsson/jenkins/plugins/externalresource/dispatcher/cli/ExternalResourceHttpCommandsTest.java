@@ -24,6 +24,8 @@
  */
 package com.sonyericsson.jenkins.plugins.externalresource.dispatcher.cli;
 
+//CS IGNORE LineLength FOR NEXT 40 LINES. REASON: imports.
+
 import com.sonyericsson.hudson.plugins.metadata.cli.CliUtils;
 import com.sonyericsson.hudson.plugins.metadata.model.MetadataNodeProperty;
 import com.sonyericsson.hudson.plugins.metadata.model.values.MetadataValue;
@@ -31,8 +33,7 @@ import com.sonyericsson.hudson.plugins.metadata.model.values.TreeStructureUtil;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.MockUtils;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.PluginImpl;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
-import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resourcemanagers.
-        DeviceMonitorExternalResourceManager;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resourcemanagers.ResourceMonitorExternalResourceManager;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resourcemanagers.ExternalResourceManager;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resourcemanagers.NoopExternalResourceManager;
 import hudson.model.Hudson;
@@ -94,7 +95,7 @@ public class ExternalResourceHttpCommandsTest {
         PluginImpl pluginImpl = mock(PluginImpl.class);
 
         PowerMockito.when(PluginImpl.getInstance()).thenReturn(pluginImpl);
-        ExternalResourceManager manager = mock(DeviceMonitorExternalResourceManager.class);
+        ExternalResourceManager manager = mock(ResourceMonitorExternalResourceManager.class);
         when(manager.isExternalLockingOk()).thenReturn(true);
         when(pluginImpl.getManager()).thenReturn(manager);
         container = new MetadataNodeProperty(new LinkedList<MetadataValue>());

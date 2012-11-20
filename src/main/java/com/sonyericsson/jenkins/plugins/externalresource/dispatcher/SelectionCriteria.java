@@ -35,6 +35,7 @@ import com.sonyericsson.hudson.plugins.metadata.model.values.TreeStructureUtil;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ReservedExternalResourceAction;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashInfo;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashResult;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.AbstractResourceSelection;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.AdminNotifier;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resourcemanagers.ExternalResourceManager;
 import hudson.model.AbstractBuild;
@@ -53,7 +54,6 @@ import hudson.model.JobProperty;
 import hudson.model.JobPropertyDescriptor;
 
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
-import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.AbstractDeviceSelection;
 
 import static com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Constants.BUILD_LOCKED_RESOURCE_NAME;
 import static com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Constants.getBuildLockedResourceParentPath;
@@ -69,39 +69,39 @@ public class SelectionCriteria extends JobProperty<AbstractProject<?, ?>> {
 
     private static final Logger logger = Logger.getLogger(SelectionCriteria.class.getName());
     private boolean selectionEnabled;
-    private List<AbstractDeviceSelection> deviceSelectionList;
+    private List<AbstractResourceSelection> resourceSelectionList;
 
     /**
      * Standard DataBound Constructor.
      *
      * @param selectionEnabled if true, selection is checked
-     * @param deviceSelectionList the selection list
+     * @param resourceSelectionList the selection list
      */
     @DataBoundConstructor
-    public SelectionCriteria(boolean selectionEnabled, List<AbstractDeviceSelection> deviceSelectionList) {
+    public SelectionCriteria(boolean selectionEnabled, List<AbstractResourceSelection> resourceSelectionList) {
         this.selectionEnabled = selectionEnabled;
-        this.deviceSelectionList = deviceSelectionList;
+        this.resourceSelectionList = resourceSelectionList;
     }
 
     /**
      * Standard Constructor.
      *
-     * @param deviceSelectionList the selection list
+     * @param resourceSelectionList the selection list
      */
-    public SelectionCriteria(List<AbstractDeviceSelection> deviceSelectionList) {
-        this.deviceSelectionList = deviceSelectionList;
+    public SelectionCriteria(List<AbstractResourceSelection> resourceSelectionList) {
+        this.resourceSelectionList = resourceSelectionList;
     }
 
     /**
-     * The list of device selection, if null, then create a new list.
+     * The list of resource selection, if null, then create a new list.
      *
-     * @return all the device selections
+     * @return all the resource selections
      */
-    public synchronized List<AbstractDeviceSelection> getDeviceSelectionList() {
-        if (deviceSelectionList == null) {
-            deviceSelectionList = new LinkedList<AbstractDeviceSelection>();
+    public synchronized List<AbstractResourceSelection> getResourceSelectionList() {
+        if (resourceSelectionList == null) {
+            resourceSelectionList = new LinkedList<AbstractResourceSelection>();
         }
-        return deviceSelectionList;
+        return resourceSelectionList;
     }
 
     /**
@@ -125,8 +125,8 @@ public class SelectionCriteria extends JobProperty<AbstractProject<?, ?>> {
         boolean foundFlag = true;
         for (ExternalResource er : availableResourceList) {
             foundFlag = true;
-            for (AbstractDeviceSelection deviceSelection : deviceSelectionList) {
-                if (!deviceSelection.equalToExternalResourceValue(er)) {
+            for (AbstractResourceSelection resourceSelection : resourceSelectionList) {
+                if (!resourceSelection.equalToExternalResourceValue(er)) {
                     foundFlag = false;
                     break;
                 }
@@ -185,10 +185,10 @@ public class SelectionCriteria extends JobProperty<AbstractProject<?, ?>> {
                 Jenkins.getInstance().getRootUrl() + build.getUrl());
         if (lockResult == null || !lockResult.isOk()) {
             AdminNotifier.getInstance().notify(AdminNotifier.MessageType.ERROR, AdminNotifier.OperationType.LOCK,
-                    node, reserved, "Could not lock device, aborting the build: " + buildName);
-            logger.log(Level.SEVERE, "Could not lock device: [{0}], aborting the build: [{1}].",
+                    node, reserved, "Could not lock resource, aborting the build: " + buildName);
+            logger.log(Level.SEVERE, "Could not lock resource: [{0}], aborting the build: [{1}].",
                     new String[]{reserved.getId(), buildName});
-            listener.getLogger().println("Could not lock device: " + reserved.getId() + ", aborting the build.");
+            listener.getLogger().println("Could not lock resource: " + reserved.getId() + ", aborting the build.");
             return false;
         }
         //update the node and build information.
@@ -235,14 +235,14 @@ public class SelectionCriteria extends JobProperty<AbstractProject<?, ?>> {
         }
 
         /**
-         * All registered device selection descriptors that applies to jobs. To be used by a hetero-list.
+         * All registered resource selection descriptors that applies to jobs. To be used by a hetero-list.
          *
          * Get descriptor list.
          * @return the descriptor list.
          */
-        public List<AbstractDeviceSelection.AbstractDeviceSelectionDescriptor> getDeviceSelectionDescriptors() {
+        public List<AbstractResourceSelection.AbstractResourceSelectionDescriptor> getResourceSelectionDescriptors() {
             return Hudson.getInstance()
-                    .getExtensionList(AbstractDeviceSelection.AbstractDeviceSelectionDescriptor.class);
+                    .getExtensionList(AbstractResourceSelection.AbstractResourceSelectionDescriptor.class);
 
         }
     }

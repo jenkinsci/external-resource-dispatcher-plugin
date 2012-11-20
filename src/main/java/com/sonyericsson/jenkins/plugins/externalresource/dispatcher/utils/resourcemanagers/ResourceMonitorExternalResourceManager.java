@@ -48,32 +48,32 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * A manager that communicates via JSON-RPC to the SEMC Device Monitor.
+ * A manager that communicates via JSON-RPC to the External Resource Monitor.
  *
  * @author Robert Sandell &lt;robert.sandell@sonymobile.com&gt;
  */
 @Extension
-public class DeviceMonitorExternalResourceManager extends ExternalResourceManager {
+public class ResourceMonitorExternalResourceManager extends ExternalResourceManager {
 
     /**
      * the logger.
      */
-    private static final Logger logger = Logger.getLogger(DeviceMonitorExternalResourceManager.class.getName());
+    private static final Logger logger = Logger.getLogger(ResourceMonitorExternalResourceManager.class.getName());
 
     /**
      * the method name of reserve.
      */
-    private static final String RESERVE_METHOD = "DeviceMonitor.Devices.Reserve";
+    private static final String RESERVE_METHOD = "ResourceMonitor.Resources.Reserve";
 
     /**
      * the method of lock.
      */
-    private static final String LOCK_METHOD = "DeviceMonitor.Devices.Lock";
+    private static final String LOCK_METHOD = "ResourceMonitor.Resources.Lock";
 
     /**
      * the method of release.
      */
-    private static final String RELEASE_METHOD = "DeviceMonitor.Devices.Release";
+    private static final String RELEASE_METHOD = "ResourceMonitor.Resources.Release";
 
     /**
      * the http url template of the RPC call. 0: the host name. 1: the port. 2: the suffix if existed.
@@ -81,12 +81,12 @@ public class DeviceMonitorExternalResourceManager extends ExternalResourceManage
     private static final String RPC_CALL_URL_TEMPLATE = "http://{0}:{1}/{2}";
 
     /**
-     * the key of the device parameter in sent json.
+     * the key of the resource parameter in sent json.
      */
-    private static final String DEVICE = "device";
+    private static final String RESOURCE = "resource";
 
     /**
-     * the key of the reservekey parameter in sent json.
+     * the key of the reserve key parameter in sent json.
      */
     private static final String RESERVE_KEY = "key";
 
@@ -136,30 +136,30 @@ public class DeviceMonitorExternalResourceManager extends ExternalResourceManage
     }
 
     /**
-     * get the device id from the resource.
+     * get the resource id from the resource.
      *
      * @param resource the external resource supposed to be working on.
-     * @return the specified deviceId.
+     * @return the specified resource id.
      */
-    private String getDeviceId(ExternalResource resource) {
+    private String getResourceId(ExternalResource resource) {
         return resource.getId();
     }
 
     @Override
     public String getDisplayName() {
-        return Messages.DeviceMonitorExternalResourceManager_DisplayName();
+        return Messages.ResourceMonitorExternalResourceManager_DisplayName();
     }
 
     @Override
     public StashResult reserve(Node node, ExternalResource resource, int seconds, String reservedBy) {
         RpcResult rpcRes = null;
-        String deviceId = getDeviceId(resource);
+        String resourceId = getResourceId(resource);
         try {
             JsonRpcHttpClient client = JsonRpcUtil.createJsonRpcClient(getURL(node),
                     JsonRpcUtil.customizeObjectMapper());
-            if (null != client && null != deviceId) {
+            if (null != client && null != resourceId) {
                 Map<String, Object> params = new HashMap<String, Object>();
-                params.put(DEVICE, deviceId);
+                params.put(RESOURCE, resourceId);
                 params.put(TIMEOUT, seconds);
                 JSONObject clientInfo = new JSONObject();
                 clientInfo.put(ID, Hudson.getInstance().getRootUrl());
@@ -170,31 +170,31 @@ public class DeviceMonitorExternalResourceManager extends ExternalResourceManage
             }
         } catch (JsonGenerationException jge) {
             logger.log(Level.WARNING, MessageFormat.format(
-                    "Can not reserve the device {0} because of the invalid json generated to rpc call.",
-                    deviceId), jge);
+                    "Can not reserve the resource {0} invalid json generated to rpc call.",
+                    resourceId), jge);
         } catch (JsonMappingException jme) {
             logger.log(Level.WARNING, MessageFormat.format(
-                    "Can not reserve the device {0} because of the invalid json mapping.",
-                    deviceId), jme);
+                    "Can not reserve the resource {0} invalid json mapping.",
+                    resourceId), jme);
         } catch (JsonParseException jpre) {
             logger.log(Level.WARNING, MessageFormat.format(
-                    "Can not reserve the device {0} because failed to parse json.",
-                    deviceId), jpre);
+                    "Can not reserve the resource {0} failed to parse json.",
+                    resourceId), jpre);
         } catch (JsonProcessingException jpoe) {
             logger.log(Level.WARNING, MessageFormat.format(
-                    "Can not reserve the device {0} because failed to process json.",
-                    deviceId), jpoe);
+                    "Can not reserve the resource {0} failed to process json.",
+                    resourceId), jpoe);
         } catch (IOException ioe) {
             logger.log(Level.WARNING, MessageFormat.format(
-                    "Can not reserve the device {0} because IO exception happened.",
-                    deviceId), ioe);
+                    "Can not reserve the resource {0}.",
+                    resourceId), ioe);
         } catch (Error e) {
             // if error type, throw it.
             throw e;
         } catch (Throwable e) {
             logger.log(Level.WARNING, MessageFormat.format(
-                    "Can not reserve the device {0}.",
-                    deviceId), e);
+                    "Can not reserve the resource {0}.",
+                    resourceId), e);
         }
         return convert(rpcRes);
     }
@@ -202,14 +202,14 @@ public class DeviceMonitorExternalResourceManager extends ExternalResourceManage
     @Override
     public StashResult lock(Node node, ExternalResource resource, String key, String lockedBy) {
         RpcResult rpcRes = null;
-        String deviceId = getDeviceId(resource);
+        String resourceId = getResourceId(resource);
 
         try {
             JsonRpcHttpClient client = JsonRpcUtil.createJsonRpcClient(getURL(node),
                     JsonRpcUtil.customizeObjectMapper());
-            if (null != client && null != deviceId) {
+            if (null != client && null != resourceId) {
                 Map<String, Object> params = new HashMap<String, Object>();
-                params.put(DEVICE, deviceId);
+                params.put(RESOURCE, resourceId);
                 params.put(RESERVE_KEY, key);
                 JSONObject clientInfo = new JSONObject();
                 clientInfo.put(ID, Hudson.getInstance().getRootUrl());
@@ -220,31 +220,31 @@ public class DeviceMonitorExternalResourceManager extends ExternalResourceManage
             }
         } catch (JsonGenerationException jge) {
             logger.log(Level.WARNING, MessageFormat.format(
-                    "Can not lock the device {0} because of the invalid json generated to rpc call.",
-                    deviceId), jge);
+                    "Can not lock the resource {0} invalid json generated to rpc call.",
+                    resourceId), jge);
         } catch (JsonMappingException jme) {
             logger.log(Level.WARNING, MessageFormat.format(
-                    "Can not lock the device {0} because of the invalid json mapping.",
-                    deviceId), jme);
+                    "Can not lock the resource {0} invalid json mapping.",
+                    resourceId), jme);
         } catch (JsonParseException jpre) {
             logger.log(Level.WARNING, MessageFormat.format(
-                    "Can not lock the device {0} because failed to parse json.",
-                    deviceId), jpre);
+                    "Can not lock the resource {0} failed to parse json.",
+                    resourceId), jpre);
         } catch (JsonProcessingException jpoe) {
             logger.log(Level.WARNING, MessageFormat.format(
-                    "Can not lock the device {0} because failed to process json.",
-                    deviceId), jpoe);
+                    "Can not lock the resource {0} failed to process json.",
+                    resourceId), jpoe);
         } catch (IOException ioe) {
             logger.log(Level.WARNING, MessageFormat.format(
-                    "Can not lock the device {0} because IO exception happened.",
-                    deviceId), ioe);
+                    "Can not lock the resource {0}.",
+                    resourceId), ioe);
         } catch (Error e) {
             // if error type, throw it.
             throw e;
         } catch (Throwable e) {
             logger.log(Level.WARNING, MessageFormat.format(
-                    "Can not lock the device {0}.",
-                    deviceId), e);
+                    "Can not lock the resource {0}.",
+                    resourceId), e);
         }
         // FIX the issue , missing key when release. because the reservekey is not
         // returned by the lock call. have to give the value here.
@@ -258,13 +258,13 @@ public class DeviceMonitorExternalResourceManager extends ExternalResourceManage
     @Override
     public StashResult release(Node node, ExternalResource resource, String key, String releasedBy) {
         RpcResult rpcRes = null;
-        String deviceId = getDeviceId(resource);
+        String resourceId = getResourceId(resource);
 
         try {
             JsonRpcHttpClient client = JsonRpcUtil.createJsonRpcClient(getURL(node));
-            if (null != client && null != deviceId) {
+            if (null != client && null != resourceId) {
                 Map<String, Object> params = new HashMap<String, Object>();
-                params.put(DEVICE, deviceId);
+                params.put(RESOURCE, resourceId);
                 params.put(RESERVE_KEY, key);
                 JSONObject clientInfo = new JSONObject();
                 clientInfo.put(ID, Hudson.getInstance().getRootUrl());
@@ -275,29 +275,29 @@ public class DeviceMonitorExternalResourceManager extends ExternalResourceManage
             }
         } catch (JsonGenerationException jge) {
             logger.log(Level.WARNING, MessageFormat.format(
-                    "Can not release the device {0} because of the invalid json generated to rpc call.",
-                    deviceId), jge);
+                    "Can not release the resource {0} invalid json generated to rpc call.",
+                    resourceId), jge);
         } catch (JsonMappingException jme) {
             logger.log(Level.WARNING, MessageFormat.format(
-                    "Can not release the device {0} because of the invalid json mapping.",
-                    deviceId), jme);
+                    "Can not release the resource {0} invalid json mapping.",
+                    resourceId), jme);
         } catch (JsonParseException jpre) {
             logger.log(Level.WARNING, MessageFormat.format(
-                    "Can not release the device {0} because failed to parse json.",
-                    deviceId), jpre);
+                    "Can not release the resource {0} failed to parse json.",
+                    resourceId), jpre);
         } catch (JsonProcessingException jpoe) {
             logger.log(Level.WARNING, MessageFormat.format(
-                    "Can not release the device {0} because failed to process json.",
-                    deviceId), jpoe);
+                    "Can not release the resource {0} failed to process json.",
+                    resourceId), jpoe);
         } catch (IOException ioe) {
             logger.log(Level.WARNING, MessageFormat.format(
-                    "Can not release the device {0} because IO exception happened.",
-                    deviceId), ioe);
+                    "Can not release the resource {0}.",
+                    resourceId), ioe);
         } catch (Error e) {
             // if error type, throw it.
             throw e;
         } catch (Throwable e) {
-            logger.log(Level.WARNING, MessageFormat.format("Can not release the device {0}.", deviceId), e);
+            logger.log(Level.WARNING, MessageFormat.format("Can not release the resource {0}.", resourceId), e);
         }
         return convert(rpcRes);
     }
@@ -309,7 +309,7 @@ public class DeviceMonitorExternalResourceManager extends ExternalResourceManage
 
     @Override
     public void updateMetadata(AbstractMetadataValue value) {
-        //placeholder for when the update Metadata method is available in the DeviceMonitor.
+        //placeholder for when the update Metadata method is available in the ResourceMonitor.
     }
 
     /**
@@ -364,7 +364,7 @@ public class DeviceMonitorExternalResourceManager extends ExternalResourceManage
         /**
          * the reserved key returned by the reserve call.
          *
-         * @return the reserved key which can used to lock a device.
+         * @return the reserved key which can used to lock a resource.
          */
         public String getKey() {
             return key;

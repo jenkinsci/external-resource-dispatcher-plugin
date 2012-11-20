@@ -2,6 +2,7 @@
  *  The MIT License
  *
  *  Copyright 2011 Sony Ericsson Mobile Communications. All rights reserved.
+ *  Copyright 2012 Sony Mobile Communications AB. All rights reserved.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -31,8 +32,8 @@ import com.sonyericsson.hudson.plugins.metadata.model.values.TreeStructureUtil;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ReservedExternalResourceAction;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashInfo;
-import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.AbstractDeviceSelection;
-import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.StringDeviceSelection;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.AbstractResourceSelection;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.StringResourceSelection;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
@@ -92,7 +93,7 @@ public class ExternalResourceQueueTaskDispatcherHudsonTest extends HudsonTestCas
         project.getBuildersList().add(new Shell("sleep 2"));
         //project = this.configRoundtrip(project);
         //TODO an active selection criteria
-        AbstractDeviceSelection selection = new StringDeviceSelection("is.matching", "yes");
+        AbstractResourceSelection selection = new StringResourceSelection("is.matching", "yes");
         boolean selectionEnabled = true;
         project.addProperty(new SelectionCriteria(selectionEnabled, Collections.singletonList(selection)));
 
@@ -124,7 +125,7 @@ public class ExternalResourceQueueTaskDispatcherHudsonTest extends HudsonTestCas
     public void testLock() throws Exception {
         FreeStyleProject project = this.createFreeStyleProject("testProject");
         project.setAssignedLabel(new LabelAtom("TEST"));
-        AbstractDeviceSelection selection = new StringDeviceSelection("is.matching", "yes");
+        AbstractResourceSelection selection = new StringResourceSelection("is.matching", "yes");
         boolean selectionEnabled = true;
         project.addProperty(new SelectionCriteria(selectionEnabled, Collections.singletonList(selection)));
         LockBuilder builder = new LockBuilder();
@@ -144,7 +145,7 @@ public class ExternalResourceQueueTaskDispatcherHudsonTest extends HudsonTestCas
     public void testSelectionNotEnabled() throws Exception {
         FreeStyleProject project = this.createFreeStyleProject("testProject");
         project.setAssignedLabel(new LabelAtom("TEST"));
-        AbstractDeviceSelection selection = new StringDeviceSelection("is.matching", "no");
+        AbstractResourceSelection selection = new StringResourceSelection("is.matching", "no");
         boolean selectionEnabled = false;
         project.addProperty(new SelectionCriteria(selectionEnabled, Collections.singletonList(selection)));
         project.getBuildersList().add(new Shell("sleep 2"));

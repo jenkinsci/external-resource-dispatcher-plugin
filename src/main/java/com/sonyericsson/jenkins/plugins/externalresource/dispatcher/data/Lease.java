@@ -2,6 +2,7 @@
  *  The MIT License
  *
  *  Copyright 2011 Sony Ericsson Mobile Communications. All rights reserved.
+ *  Copyright 2012 Sony Mobile Communications AB. All rights reserved.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -63,7 +64,7 @@ public class Lease implements Serializable, Cloneable {
     }
 
     /**
-     * Factory fro creating a Lease from the DeviceMonitor service values.
+     * Factory for creating a Lease from the ResourceMonitor service values.
      *
      * @param slaveTime     The time in milliseconds since the epoch, in UTC when the lease expires.
      * @param slaveTimeZone The offset of the local timezone, in seconds west of UTC.

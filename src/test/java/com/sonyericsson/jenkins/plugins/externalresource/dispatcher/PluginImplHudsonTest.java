@@ -24,8 +24,9 @@
  */
 package com.sonyericsson.jenkins.plugins.externalresource.dispatcher;
 
-import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resourcemanagers.
-        DeviceMonitorExternalResourceManager;
+//CS IGNORE LineLength FOR NEXT 12 LINES. REASON: imports.
+
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resourcemanagers.ResourceMonitorExternalResourceManager;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resourcemanagers.ExternalResourceManager;
 import hudson.model.Descriptor;
 import hudson.model.Hudson;
@@ -63,12 +64,12 @@ public class PluginImplHudsonTest extends HudsonTestCase {
         config.put(PluginImpl.FORM_NAME_RELEASE_KEY, "some_key");
         config.put(PluginImpl.FORM_NAME_RESERVE_TIME, PluginImpl.getInstance().getDefaultReserveTime());
         config.put(PluginImpl.FORM_NAME_MANAGER,
-                DeviceMonitorExternalResourceManager.class.getName());
+                ResourceMonitorExternalResourceManager.class.getName());
         config.put(PluginImpl.FORM_NAME_ADMIN_FILE, "/tmp/notify.csv");
         PluginImpl.getInstance().configure(null, config);
 
         ExternalResourceManager expected = Hudson.getInstance().getExtensionList(ExternalResourceManager.class)
-                .get(DeviceMonitorExternalResourceManager.class);
+                .get(ResourceMonitorExternalResourceManager.class);
         assertSame(expected, PluginImpl.getInstance().getManager());
 
         String expectedManagerClass = Whitebox.getInternalState(PluginImpl.getInstance(), "managerClass");

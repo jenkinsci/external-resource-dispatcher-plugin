@@ -101,14 +101,20 @@ public class ExternalResourceTest {
         japanCal.set(Calendar.MINUTE, 0);
         japanCal.set(Calendar.SECOND, 0);
 
-        int seconds = (int)TimeUnit.MILLISECONDS.toSeconds(japanCal.getTimeZone().getRawOffset()
-                                                            + japanCal.getTimeZone().getDSTSavings());
+        long japanOffsetMs = japanCal.getTimeZone().getRawOffset();
+        if (japanCal.getTimeZone().inDaylightTime(japanCal.getTime())) {
+            japanOffsetMs += japanCal.getTimeZone().getDSTSavings();
+        }
+        int seconds = (int)TimeUnit.MILLISECONDS.toSeconds(japanOffsetMs);
 
         Lease lease = Lease.createInstance(japanCal.getTimeInMillis(), seconds, "Japan RuleZ");
 
         Calendar local = new GregorianCalendar();
-        int localOffset = (int)TimeUnit.MILLISECONDS.toHours(local.getTimeZone().getRawOffset()
-                                                                + local.getTimeZone().getDSTSavings());
+        long localOffsetMs = local.getTimeZone().getRawOffset();
+        if (local.getTimeZone().inDaylightTime(local.getTime())) {
+            localOffsetMs += local.getTimeZone().getDSTSavings();
+        }
+        int localOffset = (int)TimeUnit.MILLISECONDS.toHours(localOffsetMs);
         int japanOffset = (int)TimeUnit.SECONDS.toHours(seconds);
 
         assertEquals(10 - japanOffset + localOffset, lease.getServerTime().get(Calendar.HOUR_OF_DAY));

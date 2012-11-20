@@ -2,6 +2,7 @@
   ~ The MIT License
   ~
   ~ Copyright 2011 Sony Ericsson Mobile Communications. All rights reserved.
+  ~ Copyright 2012 Sony Mobile Communications AB. All rights reserved.
   ~
   ~ Permission is hereby granted, free of charge, to any person obtaining a copy
   ~ of this software and associated documentation files (the "Software"), to deal
@@ -21,12 +22,13 @@
   ~ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
   ~ THE SOFTWARE.
   -->
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
-         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-    <f:optionalBlock name="selectionEnabled" inline="true" title="${%Device Selection Criteria}" checked="${instance.selectionEnabled}">
-	    <f:entry title="${%Simple Selection}">
-	            <f:hetero-list descriptors="${descriptor.getDeviceSelectionDescriptors()}" items="${instance.deviceSelectionList}"
-	                           name="deviceSelectionList" hasHeader="true" addCaption="${%Add Selector}"/>
-	    </f:entry>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+    <f:optionalBlock name="selectionEnabled" inline="true" title="${%Resource Selection Criteria}"
+                     checked="${instance.selectionEnabled}">
+        <f:entry title="${%Simple Selection}">
+            <f:hetero-list descriptors="${descriptor.getResourceSelectionDescriptors()}"
+                           items="${instance.resourceSelectionList}"
+                           name="resourceSelectionList" hasHeader="true" addCaption="${%Add Selector}"/>
+        </f:entry>
     </f:optionalBlock>
 </j:jelly>

@@ -2,6 +2,7 @@
  *  The MIT License
  *
  *  Copyright 2011 Sony Ericsson Mobile Communications. All rights reserved.
+ *  Copyright 2012 Sony Mobile Communications AB. All rights reserved.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -26,13 +27,14 @@ package com.sonyericsson.jenkins.plugins.externalresource.dispatcher;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.AbstractResourceSelection;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.StringResourceSelection;
 import junit.framework.Assert;
 import org.junit.Test;
 
 import com.sonyericsson.hudson.plugins.metadata.model.values.TreeStructureUtil;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
-import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.AbstractDeviceSelection;
-import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.StringDeviceSelection;
+
 /**
  * Tests for {@link SelectionCriteria}.
  *
@@ -40,17 +42,17 @@ import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.St
  */
 public class SelectionCriteriaTest {
     /**
-     * test GetMatchingResources. ExternalResource has several levels while StringDeviceSelection contains
+     * test GetMatchingResources. ExternalResource has several levels while StringResourceSelection contains
      * "." to represent levels
      */
     @Test
     public void testGetMatchingResources() {
-        List<AbstractDeviceSelection> deviceSelectionList = new LinkedList<AbstractDeviceSelection>();
-        AbstractDeviceSelection selection1 = new StringDeviceSelection("product.label.name", "Anzu");
-        deviceSelectionList.add(selection1);
-        AbstractDeviceSelection selection2 = new StringDeviceSelection("sim.operator", "Orange");
-        deviceSelectionList.add(selection2);
-        SelectionCriteria sc = new SelectionCriteria(deviceSelectionList);
+        List<AbstractResourceSelection> resourceSelectionList = new LinkedList<AbstractResourceSelection>();
+        AbstractResourceSelection selection1 = new StringResourceSelection("product.label.name", "Anzu");
+        resourceSelectionList.add(selection1);
+        AbstractResourceSelection selection2 = new StringResourceSelection("sim.operator", "Orange");
+        resourceSelectionList.add(selection2);
+        SelectionCriteria sc = new SelectionCriteria(resourceSelectionList);
         List<ExternalResource> availableResourceList = new LinkedList<ExternalResource>();
         ExternalResource er1 = new ExternalResource("er1", "1");
         //ExternalResource 1 with leaf value Anzu

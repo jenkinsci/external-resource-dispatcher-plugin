@@ -47,11 +47,11 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
     public abstract String getDisplayName();
 
     /**
-     * Reserve the resource on the node. A reservation has a deadline, if the device isn't locked until the lease
+     * Reserve the resource on the node. A reservation has a deadline, if the resource isn't locked until the lease
      * expires the service should unlock the resource so it can be used by another build. So if the {@link
      * com.sonyericsson.jenkins.plugins.externalresource.dispatcher.ExternalResourceQueueTaskDispatcher} reserves a
-     * device but another {@link hudson.model.queue.QueueTaskDispatcher} vetoes the build, the device should not be set
-     * to used for too long.
+     * resource but another {@link hudson.model.queue.QueueTaskDispatcher} vetoes the build, the resource should not
+     * be set to used for too long.
      *
      * @param node       the node to communicate with.
      * @param resource   the resource to reserve.

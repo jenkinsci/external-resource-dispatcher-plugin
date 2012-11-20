@@ -24,6 +24,8 @@
  */
 package com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resourcemanagers;
 
+//CS IGNORE LineLength FOR NEXT 35 LINES. REASON: imports.
+
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
@@ -54,8 +56,7 @@ import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashResult;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashResult.Status;
-import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resourcemanagers.
-        DeviceMonitorExternalResourceManager.RpcResult;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resourcemanagers.ResourceMonitorExternalResourceManager.RpcResult;
 
 /**
  * The unit test for the external resource manager.
@@ -69,17 +70,17 @@ public class ExternalResourceManagerTest {
     /**
      * the method name of reserve.
      */
-    private static final String RESERVE_METHOD = "DeviceMonitor.Devices.Reserve";
+    private static final String RESERVE_METHOD = "ResourceMonitor.Resources.Reserve";
 
     /**
      * the method of lock.
      */
-    private static final String LOCK_METHOD = "DeviceMonitor.Devices.Lock";
+    private static final String LOCK_METHOD = "ResourceMonitor.Resources.Lock";
 
     /**
      * the method of release.
      */
-    private static final String RELEASE_METHOD = "DeviceMonitor.Devices.Release";
+    private static final String RELEASE_METHOD = "ResourceMonitor.Resources.Release";
 
     /**
      * test reserve method.
@@ -114,7 +115,7 @@ public class ExternalResourceManagerTest {
 
         int time = (int)Math.random();
         Map<String, Object> paramMap = new HashMap<String, Object>();
-        paramMap.put("device", externalResourceId);
+        paramMap.put("resource", externalResourceId);
         paramMap.put("timeout", time);
         JSONObject clientInfo = new JSONObject();
                     clientInfo.put("id", "jenkins");
@@ -127,7 +128,7 @@ public class ExternalResourceManagerTest {
         // mock a node which has hostname.
         Node n = mockNode(nodeName);
 
-        ExternalResourceManager rpcCallERM = new DeviceMonitorExternalResourceManager();
+        ExternalResourceManager rpcCallERM = new ResourceMonitorExternalResourceManager();
 
         StashResult sRes = rpcCallERM.reserve(n, er, time, "me");
 
@@ -166,13 +167,7 @@ public class ExternalResourceManagerTest {
         result.setMessage(message);
         result.setStatus(Status.OK);
 
-        Map<String, Object> paramMap = new HashMap<String, Object>();
-        paramMap.put("device", externalResourceId);
-        paramMap.put("key", reserveKey);
-        JSONObject clientInfo = new JSONObject();
-                    clientInfo.put("id", "jenkins");
-                    clientInfo.put("url", "me");
-        paramMap.put("clientInfo", clientInfo);
+        Map<String, Object> paramMap = mockParamMap(externalResourceId, reserveKey);
 
         // mock for reserve.
         mockForOperation(result, new Object[]{paramMap}, nodeName, LOCK_METHOD);
@@ -180,7 +175,7 @@ public class ExternalResourceManagerTest {
         // mock a node which has hostname.
         Node n = mockNode(nodeName);
 
-        ExternalResourceManager rpcCallERM = new DeviceMonitorExternalResourceManager();
+        ExternalResourceManager rpcCallERM = new ResourceMonitorExternalResourceManager();
 
         StashResult sRes = rpcCallERM.lock(n, er, reserveKey, "me");
 
@@ -189,6 +184,24 @@ public class ExternalResourceManagerTest {
         assertEquals(Status.OK, sRes.getStatus());
         assertTrue(sRes.isOk());
         assertEquals(reserveKey, sRes.getKey());
+    }
+
+    /**
+     * Creates a parameter map to be used when mocking the rpc methods.
+     *
+     * @param externalResourceId the id
+     * @param reserveKey the key
+     * @return the parameters in a map.
+     */
+    private Map<String, Object> mockParamMap(String externalResourceId, String reserveKey) {
+        Map<String, Object> paramMap = new HashMap<String, Object>();
+        paramMap.put("resource", externalResourceId);
+        paramMap.put("key", reserveKey);
+        JSONObject clientInfo = new JSONObject();
+        clientInfo.put("id", "jenkins");
+        clientInfo.put("url", "me");
+        paramMap.put("clientInfo", clientInfo);
+        return paramMap;
     }
 
     /**
@@ -218,13 +231,7 @@ public class ExternalResourceManagerTest {
         result.setStatus(Status.OK);
 
         String key = "mockreservekey";
-        Map<String, Object> paramMap = new HashMap<String, Object>();
-        paramMap.put("device", externalResourceId);
-        paramMap.put("key", key);
-        JSONObject clientInfo = new JSONObject();
-                    clientInfo.put("id", "jenkins");
-                    clientInfo.put("url", "me");
-        paramMap.put("clientInfo", clientInfo);
+        Map<String, Object> paramMap = mockParamMap(externalResourceId, key);
 
         // mock for reserve.
         mockForOperation(result, new Object[] { paramMap }, nodeName, RELEASE_METHOD);
@@ -232,7 +239,7 @@ public class ExternalResourceManagerTest {
         // mock a node which has hostname.
         Node n = mockNode(nodeName);
 
-        ExternalResourceManager rpcCallERM = new DeviceMonitorExternalResourceManager();
+        ExternalResourceManager rpcCallERM = new ResourceMonitorExternalResourceManager();
 
         StashResult sRes = rpcCallERM.release(n, er, key, "me");
 
@@ -254,7 +261,7 @@ public class ExternalResourceManagerTest {
         JsonRpcHttpClient mockRpcClient = PowerMockito.mock(JsonRpcHttpClient.class);
         try {
             when(mockRpcClient.invoke(methodName, expectedInput,
-                    DeviceMonitorExternalResourceManager.RpcResult.class)).thenReturn(
+                    ResourceMonitorExternalResourceManager.RpcResult.class)).thenReturn(
                     expectedOutput);
         } catch (Throwable e) {
             e.printStackTrace();

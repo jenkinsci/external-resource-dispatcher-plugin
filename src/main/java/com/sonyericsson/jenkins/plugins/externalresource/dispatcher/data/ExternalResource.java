@@ -72,6 +72,11 @@ import static com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Const
 @XStreamAlias(Constants.SERIALIZATION_ALIAS_EXTERNAL_RESOURCE)
 public class ExternalResource extends TreeNodeMetadataValue {
 
+    /**
+     * IllegalStateException message from some methods if they are called before a monitor has been set.
+     */
+    private static final String NO_RESOURCE_MONITOR_EXCEPTION_MSG =
+            "No resource monitor is currently active, this operation is not permitted.";
     private String id;
     private StashInfo reserved;
     private StashInfo locked;
@@ -88,7 +93,7 @@ public class ExternalResource extends TreeNodeMetadataValue {
      * @param name        the name to identify it amongst its siblings.
      * @param description description
      * @param id          The unique ID of the resource
-     * @param enabled     if the device is enabled or not.
+     * @param enabled     if the resource is enabled or not.
      * @param children    associated metadata.
      * @see TreeNodeMetadataValue#TreeNodeMetadataValue(String, String, java.util.List)
      */
@@ -254,7 +259,7 @@ public class ExternalResource extends TreeNodeMetadataValue {
      */
     public synchronized void doLock(StashInfo info) throws IOException {
         if (!(PluginImpl.getInstance().getManager().isExternalLockingOk())) {
-            throw new IllegalStateException("No device monitor is currently active, this operation is not permitted.");
+            throw new IllegalStateException(NO_RESOURCE_MONITOR_EXCEPTION_MSG);
         }
         getACL().checkPermission(PluginImpl.LOCK_RELEASE_EXTERNAL_RESOURCE);
         setLocked(info);
@@ -270,7 +275,7 @@ public class ExternalResource extends TreeNodeMetadataValue {
      */
     public synchronized void doReserve(StashInfo info) throws IOException {
         if (!(PluginImpl.getInstance().getManager().isExternalLockingOk())) {
-            throw new IllegalStateException("No device monitor is currently active, this operation is not permitted.");
+            throw new IllegalStateException(NO_RESOURCE_MONITOR_EXCEPTION_MSG);
         }
         getACL().checkPermission(PluginImpl.LOCK_RELEASE_EXTERNAL_RESOURCE);
         setReserved(info);
@@ -285,7 +290,7 @@ public class ExternalResource extends TreeNodeMetadataValue {
      */
     public synchronized void doRelease() throws IOException {
         if (!(PluginImpl.getInstance().getManager().isExternalLockingOk())) {
-            throw new IllegalStateException("No device monitor is currently active, this operation is not permitted.");
+            throw new IllegalStateException(NO_RESOURCE_MONITOR_EXCEPTION_MSG);
         }
         getACL().checkPermission(PluginImpl.LOCK_RELEASE_EXTERNAL_RESOURCE);
         setLocked(null);

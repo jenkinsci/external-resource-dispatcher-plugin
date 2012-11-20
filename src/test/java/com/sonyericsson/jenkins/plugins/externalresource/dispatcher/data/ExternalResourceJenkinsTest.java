@@ -37,8 +37,8 @@ import com.sonyericsson.hudson.plugins.metadata.model.values.StringMetadataValue
 import com.sonyericsson.hudson.plugins.metadata.model.values.TreeNodeMetadataValue;
 import com.sonyericsson.hudson.plugins.metadata.model.values.TreeStructureUtil;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.SelectionCriteria;
-import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.AbstractDeviceSelection;
-import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.StringDeviceSelection;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.AbstractResourceSelection;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.StringResourceSelection;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.spec.TestUtils;
 import hudson.EnvVars;
 import hudson.Launcher;
@@ -183,8 +183,8 @@ public class ExternalResourceJenkinsTest extends HudsonTestCase {
         TreeStructureUtil.addValue(resource, "USB", "the type of connector", "connector", "type");
         FreeStyleProject project = createFreeStyleProject();
         project.setAssignedLabel(new LabelAtom("TEST"));
-        StringDeviceSelection selection = new StringDeviceSelection("is.matching", "yes");
-        List<AbstractDeviceSelection> list = new LinkedList<AbstractDeviceSelection>();
+        StringResourceSelection selection = new StringResourceSelection("is.matching", "yes");
+        List<AbstractResourceSelection> list = new LinkedList<AbstractResourceSelection>();
         list.add(selection);
         SelectionCriteria selectionCriteria = new SelectionCriteria(true, list);
         project.addProperty(selectionCriteria);
@@ -267,8 +267,8 @@ public class ExternalResourceJenkinsTest extends HudsonTestCase {
         slave.getNodeProperties().add(property);
 
         FreeStyleProject project = this.createFreeStyleProject();
-        StringDeviceSelection selection = new StringDeviceSelection("product.version", "One");
-        LinkedList<AbstractDeviceSelection> list = new LinkedList<AbstractDeviceSelection>();
+        StringResourceSelection selection = new StringResourceSelection("product.version", "One");
+        LinkedList<AbstractResourceSelection> list = new LinkedList<AbstractResourceSelection>();
         list.add(selection);
         project.addProperty(new SelectionCriteria(true, list));
         FreeStyleBuild build = this.buildAndAssertSuccess(project);

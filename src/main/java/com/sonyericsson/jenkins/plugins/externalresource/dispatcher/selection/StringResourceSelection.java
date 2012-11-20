@@ -2,6 +2,7 @@
  *  The MIT License
  *
  *  Copyright 2011 Sony Ericsson Mobile Communications. All rights reserved.
+ *  Copyright 2012 Sony Mobile Communications AB. All rights reserved.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +37,7 @@ import com.sonyericsson.hudson.plugins.metadata.model.values.TreeStructureUtil;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Messages;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
 import static com.sonyericsson.jenkins.plugins.externalresource.dispatcher.Constants.
-STRING_DEVICE_SELECTION_SEPARATOR_WITH_ESCAPE;
+        STRING_RESOURCE_SELECTION_SEPARATOR_WITH_ESCAPE;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
@@ -44,8 +45,8 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  *
  * @author Ren Wei &lt;wei2.ren@sonyericsson.com&gt;
  */
-@XStreamAlias("deviceSelection-String")
-public class StringDeviceSelection extends AbstractDeviceSelection {
+@XStreamAlias("resourceSelection-String")
+public class StringResourceSelection extends AbstractResourceSelection {
 
     private String name;
     private String value;
@@ -57,18 +58,18 @@ public class StringDeviceSelection extends AbstractDeviceSelection {
      * @param value the value.
      */
     @DataBoundConstructor
-    public StringDeviceSelection(String name, String value) {
+    public StringResourceSelection(String name, String value) {
         this.name = name;
         this.value = value;
     }
 
     @Override
-    public Descriptor<AbstractDeviceSelection> getDescriptor() {
-        return Hudson.getInstance().getDescriptorByType(StringDeviceSelectionDescriptor.class);
+    public Descriptor<AbstractResourceSelection> getDescriptor() {
+        return Hudson.getInstance().getDescriptorByType(StringResourceSelectionDescriptor.class);
     }
 
     /**
-     * Get the StringDeviceSelection name.
+     * Get the StringResourceSelection name.
      *
      * @return name
      */
@@ -77,7 +78,7 @@ public class StringDeviceSelection extends AbstractDeviceSelection {
     }
 
     /**
-    * Get the StringDeviceSelection value.
+    * Get the StringResourceSelection value.
     *
     * @return value
     */
@@ -86,20 +87,20 @@ public class StringDeviceSelection extends AbstractDeviceSelection {
     }
 
     /**
-    * The descriptor of {@link StringDeviceSelection}.
+    * The descriptor of {@link StringResourceSelection}.
     */
     @Extension
-    public static class StringDeviceSelectionDescriptor extends AbstractDeviceSelectionDescriptor {
+    public static class StringResourceSelectionDescriptor extends AbstractResourceSelectionDescriptor {
 
         @Override
         public String getDisplayName() {
-            return Messages.StringDeviceSelection_DisplayName();
+            return Messages.StringResourceSelection_DisplayName();
         }
 
     }
     @Override
     public boolean equalToExternalResourceValue(ExternalResource externalResource) {
-        String[] path = name.split(STRING_DEVICE_SELECTION_SEPARATOR_WITH_ESCAPE);
+        String[] path = name.split(STRING_RESOURCE_SELECTION_SEPARATOR_WITH_ESCAPE);
         Metadata externalResourceValue = TreeStructureUtil.getLeaf(externalResource, path);
         if (externalResourceValue != null) {
             Object tmpValue = externalResourceValue.getValue();

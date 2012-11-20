@@ -2,6 +2,7 @@
  *  The MIT License
  *
  *  Copyright 2011 Sony Ericsson Mobile Communications. All rights reserved.
+ *  Copyright 2012 Sony Mobile Communications AB. All rights reserved.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -37,13 +38,13 @@ public final class Constants {
      */
     public static final String SERIALIZATION_ALIAS_EXTERNAL_RESOURCE = "external-resource";
     /**
-     * Separator for string device selection.
+     * Separator for string resource selection.
      */
-    public static final String STRING_DEVICE_SELECTION_SEPARATOR = ".";
+    public static final String STRING_RESOURCE_SELECTION_SEPARATOR = ".";
     /**
-     * Separator for string device selection with escape.
+     * Separator for string resource selection with escape.
      */
-    public static final String STRING_DEVICE_SELECTION_SEPARATOR_WITH_ESCAPE = "\\.";
+    public static final String STRING_RESOURCE_SELECTION_SEPARATOR_WITH_ESCAPE = "\\.";
 
 
     /**

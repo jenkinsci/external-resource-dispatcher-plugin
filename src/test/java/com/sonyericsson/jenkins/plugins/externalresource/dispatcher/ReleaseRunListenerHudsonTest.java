@@ -2,6 +2,7 @@
  *  The MIT License
  *
  *  Copyright 2011 Sony Ericsson Mobile Communications. All rights reserved.
+ *  Copyright 2012 Sony Mobile Communications AB. All rights reserved.
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -28,8 +29,8 @@ import com.sonyericsson.hudson.plugins.metadata.model.MetadataNodeProperty;
 import com.sonyericsson.hudson.plugins.metadata.model.values.MetadataValue;
 import com.sonyericsson.hudson.plugins.metadata.model.values.TreeStructureUtil;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
-import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.AbstractDeviceSelection;
-import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.StringDeviceSelection;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.AbstractResourceSelection;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.StringResourceSelection;
 import hudson.model.Cause;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
@@ -77,7 +78,7 @@ public class ReleaseRunListenerHudsonTest extends HudsonTestCase {
         FreeStyleProject project = this.createFreeStyleProject("testProject");
         project.setAssignedLabel(new LabelAtom("TEST"));
         project.getBuildersList().add(new Shell("sleep 2"));
-        AbstractDeviceSelection selection = new StringDeviceSelection("is.matching", "yes");
+        AbstractResourceSelection selection = new StringResourceSelection("is.matching", "yes");
         boolean selectionEnabled = true;
         project.addProperty(new SelectionCriteria(selectionEnabled, Collections.singletonList(selection)));
 

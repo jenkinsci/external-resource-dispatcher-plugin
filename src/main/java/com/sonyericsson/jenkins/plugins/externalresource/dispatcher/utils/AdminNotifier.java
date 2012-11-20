@@ -110,13 +110,13 @@ public final class AdminNotifier {
      */
 
     public void notify(MessageType msgType, OperationType opType, Node node, ExternalResource er, String msg) {
-        String deviceId = "";
+        String resourceId = "";
         if (null != er) {
-            deviceId = er.getId();
+            resourceId = er.getId();
         }
         String nodeName = node.getDisplayName();
         String message = MessageFormat.format("{0}, {1}, {2}, {3}, {4}, {5}\n", Calendar.getInstance().getTime(),
-                    msgType.toString(), deviceId, opType.toString(), nodeName, msg);
+                    msgType.toString(), resourceId, opType.toString(), nodeName, msg);
         recordFile(message);
     }
 
