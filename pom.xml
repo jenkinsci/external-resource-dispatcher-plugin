@@ -13,6 +13,7 @@
     <version>0.1-SNAPSHOT</version>
     <packaging>hpi</packaging>
     <name>External Resource Dispatcher plugin</name>
+    <url>http://wiki.jenkins-ci.org/display/JENKINS/External+Resource+Dispatcher</url>
 
     <licenses>
         <license>
@@ -76,7 +77,7 @@
         <dependency>
             <groupId>com.sonyericsson.hudson.plugins.metadata</groupId>
             <artifactId>metadata</artifactId>
-            <version>0.1-SNAPSHOT</version>
+            <version>1.0b</version>
         </dependency>
         <!-- add dependency for the json rpc -->
         <dependency>
@@ -198,6 +199,11 @@
             <url>http://maven.jenkins-ci.org:8081/content/repositories/releases</url>
         </repository>
     </distributionManagement>
+    <scm>
+        <connection>scm:git:ssh://github.com/jenkinsci/external-resource-dispatcher-plugin.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/jenkinsci/external-resource-dispatcher-plugin.git</developerConnection>
+        <url>https://github.com/jenkinsci/external-resource-dispatcher-plugin</url>
+    </scm>
     <reporting>
         <plugins>
             <plugin>
