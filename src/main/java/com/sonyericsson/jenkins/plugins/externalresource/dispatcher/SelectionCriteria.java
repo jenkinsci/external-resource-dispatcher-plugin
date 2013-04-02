@@ -182,7 +182,7 @@ public class SelectionCriteria extends JobProperty<AbstractProject<?, ?>> {
         }
         //we have a reserved phone, now lock it.
         StashResult lockResult = resourceManager.lock(node, reserved, reservedInfo.getKey(),
-                Jenkins.getInstance().getRootUrl() + build.getUrl());
+                build.getUrl());
         if (lockResult == null || !lockResult.isOk()) {
             AdminNotifier.getInstance().notify(AdminNotifier.MessageType.ERROR, AdminNotifier.OperationType.LOCK,
                     node, reserved, "Could not lock resource, aborting the build: " + buildName);
@@ -192,10 +192,6 @@ public class SelectionCriteria extends JobProperty<AbstractProject<?, ?>> {
             return false;
         }
         //update the node and build information.
-        StashInfo lockInfo = new StashInfo(lockResult, build.getUrl());
-        // change the reserved info and set lock info.
-        reserved.setLocked(lockInfo);
-        reserved.setReserved(null);
         ExternalResource locked;
         try {
             locked = reserved.clone();

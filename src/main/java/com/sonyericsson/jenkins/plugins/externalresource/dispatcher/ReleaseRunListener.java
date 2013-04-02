@@ -92,11 +92,10 @@ public class ReleaseRunListener extends RunListener<AbstractBuild> {
             StashInfo lockInfo = nodeResource.getLocked();
             if (lockInfo != null) {
                 StashResult result = PluginImpl.getInstance().getManager().release(build.getBuiltOn(),
-                        nodeResource, lockInfo.getKey(), Jenkins.getInstance().getRootUrl() + build.getUrl());
+                        nodeResource, lockInfo.getKey(), build.getUrl());
                 if (result != null && result.isOk()) {
                     //Success!
                     logReleaseSuccess(build, buildResource, buildLogger);
-                    nodeResource.setLocked(null);
                 } else {
                     logReleaseFailure(build, buildLogger, nodeResource, result);
                 }

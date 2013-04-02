@@ -26,14 +26,16 @@ package com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resou
 
 import com.sonyericsson.hudson.plugins.metadata.model.values.AbstractMetadataValue;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
+import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashInfo;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashResult;
 import hudson.ExtensionPoint;
 import hudson.model.Node;
 
 /**
- * Manager for handling reservation of resources by external services. For example the external resources on a slave
- * might be managed by a daemon who handles locking and unlocking of the resources on the slave itself, extend this to
- * provide your own implementation of such a communication interface.
+ * Manager for handling reservation of resources by external services. The Method Template pattern is used to allow for
+ * sub-classes providing their own reservation functionality. For example the external resources on a slave might be 
+ * managed by a daemon who handles locking and unlocking of the resources on the slave itself, and you extend this  
+ * class to provide your own implementation of such a communication interface.
  *
  * @author Robert Sandell &lt;robert.sandell@sonyericsson.com&gt;
  */
@@ -59,7 +61,28 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
      * @param reservedBy a String describing what reserved the resource.
      * @return the result.
      */
-    public abstract StashResult reserve(Node node, ExternalResource resource, int seconds, String reservedBy);
+    public StashResult reserve(Node node, ExternalResource resource, int seconds, String reservedBy){
+      StashResult result = doReserve(node, resource, seconds, reservedBy);
+
+      if (result != null && result.isOk()) {
+        resource.setReserved(new StashInfo(result, reservedBy));
+      }
+
+      return result;
+    }
+
+
+    /**
+     * Implementation of the reservation mechanism itself. Sub-classes can call external sevices to do the actual locking 
+     * if needed.
+     * @param node       the node to communicate with.
+     * @param resource   the resource to reserve.
+     * @param seconds    the number of seconds the lease should be.
+     * @param reservedBy a String describing what reserved the resource.
+     * @return the result.
+     */
+    protected abstract StashResult doReserve(Node node, ExternalResource resource, int seconds, String reservedBy);
+
 
     /**
      * Locks the resource (permanently) until it is unlocked, no other build should be able to use this resource.
@@ -71,7 +94,29 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
      * @param lockedBy a String describing what locked the resource.
      * @return the result.
      */
-    public abstract StashResult lock(Node node, ExternalResource resource, String key, String lockedBy);
+    public StashResult lock(Node node, ExternalResource resource, String key, String lockedBy){
+      StashResult result = doLock(node, resource, key, lockedBy);
+
+      if (result != null && result.isOk()) {
+        resource.setLocked(new StashInfo(result, lockedBy));
+      }
+
+      return result;
+    }
+
+
+    /**
+     * Implementation of the locking mechanism itself. Sub-classes can call external sevices to do the actual locking
+     * if needed.
+     * @param node     the node holding the resource.
+     * @param resource the resource to lock.
+     * @param key      the key to be able to lock it (retained from
+     *                 {@link #reserve(hudson.model.Node, ExternalResource, int, String)}).
+     * @param lockedBy a String describing what locked the resource.
+     * @return the result.
+     */
+    protected abstract StashResult doLock(Node node, ExternalResource resource, String key, String lockedBy);
+
 
     /**
      * Releases the resource, other builds can now use it.
@@ -85,7 +130,31 @@ public abstract class ExternalResourceManager implements ExtensionPoint {
      * @param releasedBy a String describing what released the resource.
      * @return the result.
      */
-    public abstract StashResult release(Node node, ExternalResource resource, String key, String releasedBy);
+    public StashResult release(Node node, ExternalResource resource, String key, String releasedBy){
+      StashResult result = doRelease(node, resource, key, releasedBy);
+
+      if (result != null && result.isOk()) {
+        resource.setReserved(null);
+        resource.setLocked(null);
+      }
+
+      return result;
+    }
+
+
+    /**
+     * Implementation of the releasing mechanism itself. Sub-classes can call external sevices to do the actual locking
+     * if needed.
+     * @param node       the node holding the resource.
+     * @param resource   the resource to unlock.
+     * @param key        the key to unlock the resource with (retained from a previous call to
+     *                   {@link  #lock(hudson.model.Node,
+     *                   com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource,
+     *                   String, String)}.
+     * @param releasedBy a String describing what released the resource.
+     * @return the result.
+     */
+    protected abstract StashResult doRelease(Node node, ExternalResource resource, String key, String releasedBy);
 
     /**
      * Answers true if these operations are allowed using this ExternalResourceManager.
