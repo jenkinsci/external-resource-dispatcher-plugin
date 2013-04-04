@@ -126,6 +126,11 @@
             <version>${powermock.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.cloudbees.plugins</groupId>
+            <artifactId>build-flow-plugin</artifactId>
+            <version>0.9</version>
+        </dependency>
     </dependencies>
 
     <pluginRepositories>
