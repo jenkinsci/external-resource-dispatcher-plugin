@@ -205,6 +205,9 @@ public class ExternalResource extends TreeNodeMetadataValue {
      */
     public void setLocked(StashInfo locked) {
         this.locked = locked;
+        if(locked != null){
+            setReserved(null);
+        }
     }
 
     /**

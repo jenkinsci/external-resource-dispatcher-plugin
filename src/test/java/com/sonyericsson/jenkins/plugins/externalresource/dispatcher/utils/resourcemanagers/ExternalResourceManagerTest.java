@@ -30,6 +30,7 @@ import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.when;
 
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.MockUtils;
@@ -132,6 +133,7 @@ public class ExternalResourceManagerTest {
 
         StashResult sRes = rpcCallERM.reserve(n, er, time, "me");
 
+        assertFalse(er.isAvailable());
         assertEquals(code, sRes.getErrorCode());
         assertEquals(message, sRes.getMessage());
         assertEquals(reserveKey, sRes.getKey());
@@ -179,6 +181,7 @@ public class ExternalResourceManagerTest {
 
         StashResult sRes = rpcCallERM.lock(n, er, reserveKey, "me");
 
+        assertFalse(er.isAvailable());
         assertEquals(code, sRes.getErrorCode());
         assertEquals(message, sRes.getMessage());
         assertEquals(Status.OK, sRes.getStatus());
@@ -243,6 +246,7 @@ public class ExternalResourceManagerTest {
 
         StashResult sRes = rpcCallERM.release(n, er, key, "me");
 
+        assertTrue(er.isAvailable());
         assertEquals(code, sRes.getErrorCode());
         assertEquals(Status.OK, sRes.getStatus());
         assertEquals(message, sRes.getMessage());

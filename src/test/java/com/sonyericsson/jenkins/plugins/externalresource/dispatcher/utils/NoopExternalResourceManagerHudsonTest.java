@@ -76,8 +76,8 @@ public class NoopExternalResourceManagerHudsonTest extends HudsonTestCase {
      */
     public void testReserve() {
         StashResult result = PluginImpl.getNoopResourceManager().reserve(slave, resource, 1, "me");
-        resource.setReserved(new StashInfo(result, "me"));
         assertTrue(result.isOk());
+        assertFalse(resource.isAvailable());
         try {
             Thread.sleep(1500);
         } catch (InterruptedException e) {

@@ -42,18 +42,18 @@ public class DefaultExternalResourceManager extends ExternalResourceManager {
     }
 
     @Override
-    public StashResult reserve(Node node, ExternalResource resource, int seconds, String reservedBy) {
+    public StashResult doReserve(Node node, ExternalResource resource, int seconds, String reservedBy) {
 
         return null;
     }
 
     @Override
-    public StashResult lock(Node node, ExternalResource resource, String key, String lockedBy) {
+    public StashResult doLock(Node node, ExternalResource resource, String key, String lockedBy) {
         return null;
     }
 
     @Override
-    public StashResult release(Node node, ExternalResource resource, String key, String releasedBy) {
+    public StashResult doRelease(Node node, ExternalResource resource, String key, String releasedBy) {
         return null;
     }
 
