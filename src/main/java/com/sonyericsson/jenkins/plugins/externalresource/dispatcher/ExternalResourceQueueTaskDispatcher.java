@@ -113,14 +113,12 @@ public class ExternalResourceQueueTaskDispatcher extends QueueTaskDispatcher {
 
         for (ExternalResource resource : resources) {
             StashResult result = manager.reserve(node, resource, PluginImpl.getInstance().getReserveTime(),
-                    Jenkins.getInstance().getRootUrl() + item.task.getUrl());
+                    item.task.getUrl());
             logger.log(Level.FINEST, "Reserve result for [{0}]: Status {1} code {2} message {3}",
                     new Object[]{resource.getFullName(), result.getStatus().name(),
                             result.getErrorCode(), result.getMessage(), });
             if (result != null && result.isOk()) {
                 reservedResource = resource;
-                StashInfo info = new StashInfo(result, getUrl(item.task));
-                reservedResource.setReserved(info);
                 logger.finest("reservation ok");
                 break;
             } else {

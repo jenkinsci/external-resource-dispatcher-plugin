@@ -58,19 +58,19 @@ public class NoopExternalResourceManager extends ExternalResourceManager {
     protected final StashResult okResult = new StashResult("noop", "noop");
 
     @Override
-    public StashResult reserve(Node node, ExternalResource resource, int seconds, String reservedBy) {
+    public StashResult doReserve(Node node, ExternalResource resource, int seconds, String reservedBy) {
         Trigger.timer.schedule(new ReservationTimeoutTask(node.getNodeName(), resource.getId()),
                 TimeUnit.SECONDS.toMillis(seconds));
         return okResult;
     }
 
     @Override
-    public StashResult lock(Node node, ExternalResource resource, String key, String lockedBy) {
+    public StashResult doLock(Node node, ExternalResource resource, String key, String lockedBy) {
         return okResult;
     }
 
     @Override
-    public StashResult release(Node node, ExternalResource resource, String key, String releasedBy) {
+    public StashResult doRelease(Node node, ExternalResource resource, String key, String releasedBy) {
         return okResult;
     }
 

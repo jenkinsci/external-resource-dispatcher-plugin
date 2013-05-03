@@ -151,7 +151,7 @@ public class ResourceMonitorExternalResourceManager extends ExternalResourceMana
     }
 
     @Override
-    public StashResult reserve(Node node, ExternalResource resource, int seconds, String reservedBy) {
+    public StashResult doReserve(Node node, ExternalResource resource, int seconds, String reservedBy) {
         RpcResult rpcRes = null;
         String resourceId = getResourceId(resource);
         try {
@@ -200,7 +200,7 @@ public class ResourceMonitorExternalResourceManager extends ExternalResourceMana
     }
 
     @Override
-    public StashResult lock(Node node, ExternalResource resource, String key, String lockedBy) {
+    public StashResult doLock(Node node, ExternalResource resource, String key, String lockedBy) {
         RpcResult rpcRes = null;
         String resourceId = getResourceId(resource);
 
@@ -256,7 +256,7 @@ public class ResourceMonitorExternalResourceManager extends ExternalResourceMana
     }
 
     @Override
-    public StashResult release(Node node, ExternalResource resource, String key, String releasedBy) {
+    public StashResult doRelease(Node node, ExternalResource resource, String key, String releasedBy) {
         RpcResult rpcRes = null;
         String resourceId = getResourceId(resource);
 
