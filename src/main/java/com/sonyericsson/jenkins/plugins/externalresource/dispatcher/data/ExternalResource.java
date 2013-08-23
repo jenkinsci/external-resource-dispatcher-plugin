@@ -78,8 +78,8 @@ public class ExternalResource extends TreeNodeMetadataValue {
     private static final String NO_RESOURCE_MONITOR_EXCEPTION_MSG =
             "No resource monitor is currently active, this operation is not permitted.";
     private String id;
-    private StashInfo reserved;
-    private StashInfo locked;
+    private transient StashInfo reserved;
+    private transient StashInfo locked;
     /**
      * For access control purposes enabled can internally have 3 values; not set, true or false.
      * All logic related to enabled should handle "not set" as enabled.
