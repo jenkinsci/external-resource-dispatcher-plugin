@@ -25,6 +25,7 @@ package com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data;
 
 import hudson.model.Action;
 
+import java.util.Iterator;
 import java.util.Stack;
 
 /**
@@ -103,5 +104,18 @@ public class ReservedExternalResourceAction implements Action {
      */
     public synchronized boolean isEmpty() {
         return stack.empty();
+    }
+
+    /**
+     * Maintain the Action in case that a resource's lease is run out.
+     */
+    public synchronized void maintain() {
+        Iterator<ExternalResource> iterator = stack.iterator();
+        while (iterator.hasNext()) {
+            ExternalResource resource = iterator.next();
+            if (resource.getReserved() == null) {
+                iterator.remove();
+            }
+        }
     }
 }
