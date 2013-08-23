@@ -44,6 +44,8 @@ import hudson.model.queue.CauseOfBlockage;
 import hudson.model.queue.QueueTaskDispatcher;
 import jenkins.model.Jenkins;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -152,6 +154,21 @@ public class ExternalResourceQueueTaskDispatcher extends QueueTaskDispatcher {
      */
     private ReservedExternalResourceAction getReservedExternalResourceAction(Queue.BuildableItem item) {
         List<ReservedExternalResourceAction> actions = item.getActions(ReservedExternalResourceAction.class);
+        // maintain the actions for run out leases
+        Iterator<ReservedExternalResourceAction> iterator = actions.iterator();
+        List<ReservedExternalResourceAction> toRemove = new ArrayList<ReservedExternalResourceAction>();
+        while (iterator.hasNext()) {
+            ReservedExternalResourceAction act = iterator.next();
+            act.maintain();
+            if (act.isEmpty()) {
+                toRemove.add(act);
+            }
+        }
+        if (!toRemove.isEmpty()) {
+            item.getActions().removeAll(toRemove);
+            actions.removeAll(toRemove);
+        }
+
         if (actions != null && actions.size() > 0) {
             return actions.get(0);
         } else {
