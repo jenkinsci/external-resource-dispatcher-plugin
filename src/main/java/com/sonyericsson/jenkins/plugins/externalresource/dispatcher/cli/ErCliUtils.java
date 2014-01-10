@@ -24,14 +24,18 @@
  */
 package com.sonyericsson.jenkins.plugins.externalresource.dispatcher.cli;
 
+import jenkins.model.Jenkins;
+
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.AvailabilityFilter;
+
 import hudson.model.Hudson;
 import hudson.model.Node;
 import net.sf.json.JSON;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
+
 import org.kohsuke.args4j.CmdLineException;
 
 /**
@@ -51,7 +55,12 @@ public final class ErCliUtils {
      * @throws CmdLineException if no node or resource could be found.
      */
     public static ExternalResource findExternalResource(String nodeName, String id) throws CmdLineException {
-        Node node = Hudson.getInstance().getNode(nodeName);
+    	Node node = null;
+        if (nodeName.isEmpty()) {
+        	node = Jenkins.getInstance();
+        } else {
+        	node = Hudson.getInstance().getNode(nodeName);
+        }
         if (node != null) {
             ExternalResource resource = AvailabilityFilter.getInstance().getExternalResourceById(node, id);
             if (resource != null) {

@@ -117,7 +117,11 @@ public class ExternalResourceTest {
         int localOffset = (int)TimeUnit.MILLISECONDS.toHours(localOffsetMs);
         int japanOffset = (int)TimeUnit.SECONDS.toHours(seconds);
 
-        assertEquals(10 - japanOffset + localOffset, lease.getServerTime().get(Calendar.HOUR_OF_DAY));
+        //"time in zone B" = ("time in zone A" - "UTC offset for zone A" + "UTC offset for zone B") % 24.
+        int resultTime = 10 - japanOffset + localOffset;
+        if (resultTime < 0)
+        	resultTime += 24;
+        assertEquals(resultTime, lease.getServerTime().get(Calendar.HOUR_OF_DAY));
     }
 
     /**
@@ -140,8 +144,12 @@ public class ExternalResourceTest {
         Calendar local = new GregorianCalendar();
         int localOffset = (int)TimeUnit.MILLISECONDS.toHours(local.getTimeZone().getRawOffset());
         int sfOffset = (int)TimeUnit.SECONDS.toHours(seconds);
-
-        assertEquals(9 - sfOffset + localOffset, lease.getServerTime().get(Calendar.HOUR_OF_DAY));
+        
+        //"time in zone B" = ("time in zone A" - "UTC offset for zone A" + "UTC offset for zone B") % 24.
+        int resultTime = 9 - sfOffset + localOffset;
+        if (resultTime < 0)
+        	resultTime += 24;
+        assertEquals(resultTime, lease.getServerTime().get(Calendar.HOUR_OF_DAY));
     }
 
     /**
