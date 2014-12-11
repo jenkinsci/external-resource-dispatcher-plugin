@@ -101,7 +101,7 @@ public class ExternalResourceQueueTaskDispatcher extends QueueTaskDispatcher {
             return new BecauseNoAvailableResources(node);
         }
 
-        resources = selectionCriteria.getMatchingResources(resources);
+        resources = selectionCriteria.getMatchingResources(resources, item);
 
         if (resources == null || resources.isEmpty()) {
             //No matching resources, block the build on this node.

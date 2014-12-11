@@ -38,9 +38,7 @@ import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.StashRe
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection.AbstractResourceSelection;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.AdminNotifier;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resourcemanagers.ExternalResourceManager;
-import hudson.model.AbstractBuild;
-import hudson.model.BuildListener;
-import hudson.model.Node;
+import hudson.model.*;
 
 
 import jenkins.model.Jenkins;
@@ -48,10 +46,6 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.export.ExportedBean;
 
 import hudson.Extension;
-import hudson.model.AbstractProject;
-import hudson.model.Hudson;
-import hudson.model.JobProperty;
-import hudson.model.JobPropertyDescriptor;
 
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
 
@@ -115,6 +109,33 @@ public class SelectionCriteria extends JobProperty<AbstractProject<?, ?>> {
 
     /**
      * Get matching resource from available resources.
+     * Takes an additional {@link hudson.model.Queue.Item} that can be queried for e.g. build parameter values.
+     *
+     * @param availableResourceList
+     *            available resources list.
+     * @param qi parent queue item.
+     * @return the matching resource list if exists.
+     */
+    public List<ExternalResource> getMatchingResources(List<ExternalResource> availableResourceList, Queue.Item qi) {
+        List<ExternalResource> matchingResourceList = new LinkedList<ExternalResource>();
+        boolean foundFlag = true;
+        for (ExternalResource er : availableResourceList) {
+            foundFlag = true;
+            for (AbstractResourceSelection resourceSelection : resourceSelectionList) {
+                if (!resourceSelection.equalToExternalResourceValue(er, qi)) {
+                    foundFlag = false;
+                    break;
+                }
+            }
+            if (foundFlag) {
+                matchingResourceList.add(er);
+            }
+        }
+        return matchingResourceList;
+     }
+
+    /**
+     * Get matching resource from available resources.
      *
      * @param availableResourceList
      *            available resources list.
@@ -136,7 +157,7 @@ public class SelectionCriteria extends JobProperty<AbstractProject<?, ?>> {
             }
         }
         return matchingResourceList;
-     }
+    }
 
     @Override
     public boolean prebuild(AbstractBuild<?, ?> build,

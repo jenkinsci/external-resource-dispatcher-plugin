@@ -29,6 +29,7 @@ import hudson.model.Descriptor;
 
 import java.io.Serializable;
 
+import hudson.model.Queue;
 import org.kohsuke.stapler.export.ExportedBean;
 
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
@@ -55,4 +56,14 @@ public abstract class AbstractResourceSelection implements Serializable, Describ
      * @return true if resource selection equals to ExternalResource leaf value
      */
     public abstract boolean equalToExternalResourceValue(ExternalResource externalResource);
+    /**
+     * Resource selection input compare With ExternalResource leaf value.
+     * Takes a {@link hudson.model.Queue.Item} that can be queried for e.g. build parameter values.
+     *
+     * @param externalResource the External Resource
+     * @param qi Parent queue item
+     * @return true if resource selection equals to ExternalResource leaf value
+     */
+    public abstract boolean equalToExternalResourceValue(ExternalResource externalResource, Queue.Item qi);
+
 }

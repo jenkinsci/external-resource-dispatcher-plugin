@@ -27,8 +27,12 @@ package com.sonyericsson.jenkins.plugins.externalresource.dispatcher.selection;
 
 import hudson.Extension;
 
-import hudson.model.Descriptor;
-import hudson.model.Hudson;
+import hudson.Util;
+import hudson.model.*;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Logger;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -105,6 +109,29 @@ public class StringResourceSelection extends AbstractResourceSelection {
         if (externalResourceValue != null) {
             Object tmpValue = externalResourceValue.getValue();
             if (tmpValue != null && value.equals(tmpValue.toString())) {
+                return true;
+            }
+        }
+        return false;
+    }
+    @Override
+    public boolean equalToExternalResourceValue(ExternalResource externalResource, Queue.Item qi) {
+        String[] path = name.split(STRING_RESOURCE_SELECTION_SEPARATOR_WITH_ESCAPE);
+        Map params = new HashMap();
+        // Find all the build parameters and create a HashMap of key/value pairs.
+        for (ParametersAction pa : qi.getActions(ParametersAction.class)) {
+            for (ParameterValue p : pa.getParameters()) {
+                if (StringParameterValue.class.isAssignableFrom(p.getClass())) {
+                    params.put(p.getName(), ((StringParameterValue)p).value);
+                }
+            }
+        }
+        // Use the HashMap to expand any variables in our value definition.
+        String expanded_value = Util.replaceMacro(value, params);
+        Metadata externalResourceValue = TreeStructureUtil.getLeaf(externalResource, path);
+        if (externalResourceValue != null) {
+            Object tmpValue = externalResourceValue.getValue();
+            if (tmpValue != null && expanded_value.equals(tmpValue.toString())) {
                 return true;
             }
         }
