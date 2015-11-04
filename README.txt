@@ -27,9 +27,6 @@ This plugin adds the support for external resources in Jenkins. An external reso
 giving exclusive access to it, then released after the build is done. Examples of external resources include phones, printers and USB christmas trees.
 
 ==============
-Maintainers
+Maintainer
 
-Robert Sandell - robert.sandell@sonymobile.com
-                 sandell.robert@gmail.com
-
-Tomas Westling - tomas.westling@sonymobile.com
+Sean Jones - neuralsandwich@gmail.com

@@ -26,6 +26,17 @@
     </licenses>
 
     <developers>
+      <developer>
+	<id>neuralsandwich</id>
+	<name>Sean Jones</name>
+	<email>neuralsandwich@gmail.com</email>
+	<url>uk.linkedin.com/in/neuralsandwich</url>
+	<roles>
+	  <role>architect</role>
+	  <role>developer</role>
+          <role>maintainer</role>
+	</roles>
+      </developer>
         <developer>
             <id>rsandell</id>
             <name>Robert Sandell</name>
@@ -35,7 +46,6 @@
             <roles>
                 <role>architect</role>
                 <role>developer</role>
-                <role>maintainer</role>
             </roles>
             <timezone>+1</timezone>
         </developer>
@@ -48,7 +58,6 @@
             <roles>
                 <role>architect</role>
                 <role>developer</role>
-                <role>maintainer</role>
             </roles>
             <timezone>+1</timezone>
         </developer>
