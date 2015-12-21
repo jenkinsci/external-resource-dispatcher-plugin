@@ -28,6 +28,7 @@ import com.sonyericsson.hudson.plugins.metadata.model.MetadataParent;
 import com.sonyericsson.hudson.plugins.metadata.model.values.MetadataValue;
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.data.ExternalResource;
 import hudson.model.Node;
+import hudson.model.Computer;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -126,6 +127,10 @@ public final class AvailabilityFilter {
      * @return a list of {@link ExternalResource}s or null if there is no metadata on the node.
      */
     public List<ExternalResource> getExternalResourcesList(Node node) {
+		Computer computer = node.toComputer();
+		if (computer == null || computer.isOffline()) {
+			return null;    // Nodes that are offline effectively have no resources!
+		}
         MetadataNodeProperty property = node.getNodeProperties().get(MetadataNodeProperty.class);
         if (property != null) {
             List<ExternalResource> list = new LinkedList<ExternalResource>();

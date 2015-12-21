@@ -36,6 +36,7 @@ import hudson.Extension;
 import hudson.model.AbstractBuild;
 import hudson.model.TaskListener;
 import hudson.model.listeners.RunListener;
+import hudson.matrix.MatrixBuild;
 import jenkins.model.Jenkins;
 
 import java.io.PrintStream;
@@ -59,6 +60,10 @@ public class ReleaseRunListener extends RunListener<AbstractBuild> {
     @Override
     public void onCompleted(AbstractBuild build, TaskListener listener) {
         logger.entering("ReleaseRunListener", "onCompleted", build);
+		if (build instanceof MatrixBuild) {
+			logger.log(Level.FINE, "Skipping release of resource for parent matrix meta-job {0}.", build);
+            return;
+		}
         MetadataBuildAction metadata = build.getAction(MetadataBuildAction.class);
         if (metadata != null) {
             MetadataValue value = TreeStructureUtil.getPath(metadata, getBuildLockedResourcePath());
