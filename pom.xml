@@ -145,6 +145,7 @@
             <groupId>com.cloudbees.plugins</groupId>
             <artifactId>build-flow-plugin</artifactId>
             <version>0.9</version>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 

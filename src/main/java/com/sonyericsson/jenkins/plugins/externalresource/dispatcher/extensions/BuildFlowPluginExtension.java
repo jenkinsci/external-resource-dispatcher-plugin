@@ -13,7 +13,7 @@ import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.PluginImpl;
  * @author Patrik Johansson &lt;patrik.x.johansson@ericsson.com&gt;
  *
  */
-@Extension
+@Extension(optional = true)
 public class BuildFlowPluginExtension extends BuildFlowDSLExtension {
 
   public Object createExtension(String extensionName, FlowDelegate dsl){
