@@ -111,7 +111,7 @@ public final class JsonRpcUtil {
             @SuppressWarnings("unchecked")
             public JsonNode valueToTree(Object params) {
                 if (params.getClass().isArray()) {
-                    Object[] paramArray = (Object[]) params;
+                    Object[] paramArray = (Object[])params;
                     if (paramArray.length == 1) { // if only one element  there.
                         return super.valueToTree(paramArray[0]);
                     }
