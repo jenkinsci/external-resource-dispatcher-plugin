@@ -89,15 +89,21 @@
         </dependency>
         <!-- add dependency for the json rpc -->
         <dependency>
-            <groupId>com.googlecode</groupId>
+            <groupId>com.github.briandilley.jsonrpc4j</groupId>
             <artifactId>jsonrpc4j</artifactId>
-            <version>0.18</version>
+            <version>1.5.0</version>
         </dependency>
         <!-- Apache license Jackson: -->
         <dependency>
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-mapper-asl</artifactId>
             <version>1.7.5</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.8.5</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

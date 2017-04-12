@@ -46,7 +46,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import net.sf.json.JSONObject;
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
