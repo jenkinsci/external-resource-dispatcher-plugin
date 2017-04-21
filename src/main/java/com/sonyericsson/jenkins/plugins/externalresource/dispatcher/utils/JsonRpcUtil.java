@@ -30,15 +30,16 @@ import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
+
+import com.fasterxml.jackson.databind.JsonNode;
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * this is the util class for json rpc.
  * you can create different rpc client for use.
- * @author Leimeng Zhang
  *
+ * @author Leimeng Zhang
  */
 public final class JsonRpcUtil {
 
@@ -55,6 +56,7 @@ public final class JsonRpcUtil {
 
     /**
      * create the Json RPC client using the specified url.
+     *
      * @param url the url of the RPC call.
      * @return the {@link JsonRpcHttpClient} to be used.
      */
@@ -72,7 +74,8 @@ public final class JsonRpcUtil {
 
     /**
      * create the Json RPC client using the specified url and a customized {@link ObjectMapper}.
-     * @param url the url of the RPC call.
+     *
+     * @param url                    the url of the RPC call.
      * @param customizedObjectMapper the customized {@link ObjectMapper} to support rpc json format.
      * @return the {@link JsonRpcHttpClient} to be used.
      */
@@ -87,6 +90,7 @@ public final class JsonRpcUtil {
         }
         return client;
     }
+
     /**
      * create the customized object mapper, which is used to read/write json
      * object. by doing so, the object[] will cast to be one jsonObject if
