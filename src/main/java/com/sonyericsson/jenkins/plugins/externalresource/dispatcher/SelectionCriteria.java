@@ -28,6 +28,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.io.IOException;
 
 import com.sonyericsson.hudson.plugins.metadata.model.MetadataBuildAction;
 import com.sonyericsson.hudson.plugins.metadata.model.values.TreeNodeMetadataValue;
@@ -41,6 +42,8 @@ import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resour
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import hudson.model.Node;
+import hudson.matrix.MatrixBuild;
+import hudson.matrix.MatrixRun;
 
 
 import jenkins.model.Jenkins;
@@ -141,21 +144,37 @@ public class SelectionCriteria extends JobProperty<AbstractProject<?, ?>> {
     @Override
     public boolean prebuild(AbstractBuild<?, ?> build,
                         BuildListener listener) {
+		logger.entering("SelectionCriteria", "prebuild", new Object[]{build, listener});
         if (!getSelectionEnabled()) {
             logger.log(Level.FINE, "Selection not enabled, continuing");
             return true;
         }
+		if (build instanceof MatrixBuild) {
+			logger.log(Level.FINE, "Selection enabled, but irrelevant for parent matrix meta-job, continuing without locking");
+			// Inject this property into the matrix configuration runs too, so that they also cause prebuild to be called,
+			// otherwise they won't actually lock the resource before they start building(!)
+			MatrixBuild mb = (MatrixBuild)build;
+			for (MatrixRun run : mb.getRuns()) {
+				try {
+					run.getProject().addProperty(this);
+				} catch (IOException e) {
+					logger.log(Level.SEVERE, "Error injecting SelectionCriteria property into sub-tasks of matrix build");
+					return false;
+				}
+			}
+            return true;
+		}
         String buildName = build.getFullDisplayName();
         Node node = build.getBuiltOn();
         ReservedExternalResourceAction action = build.getAction(ReservedExternalResourceAction.class);
         if (action == null) {
             AdminNotifier.getInstance().notify(AdminNotifier.MessageType.ERROR, AdminNotifier.OperationType.RESERVE,
-                    node, null, "No phone chosen even though we have selection criteria, aborting build: "
+                    node, null, "No external resource chosen even though we have selection criteria, aborting build: "
                             + buildName);
             logger.log(Level.SEVERE,
-                    "No phone chosen even though we have selection criteria, aborting build: [{0}].", buildName);
+                    "No external resource chosen even though we have selection criteria, aborting build: [{0}].", buildName);
             listener.getLogger().println(
-                    "No phone chosen even though we have selection criteria, aborting build.");
+                    "No external resource chosen even though we have selection criteria, aborting build.");
             return false;
         }
         ExternalResource reserved = action.pop();

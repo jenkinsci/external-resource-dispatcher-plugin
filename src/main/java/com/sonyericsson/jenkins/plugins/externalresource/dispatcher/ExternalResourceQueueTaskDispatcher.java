@@ -37,6 +37,7 @@ import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.Availa
 import com.sonyericsson.jenkins.plugins.externalresource.dispatcher.utils.resourcemanagers.ExternalResourceManager;
 import hudson.Extension;
 import hudson.matrix.MatrixConfiguration;
+import hudson.matrix.MatrixProject;
 import hudson.model.AbstractProject;
 import hudson.model.Node;
 import hudson.model.Queue;
@@ -64,6 +65,7 @@ public class ExternalResourceQueueTaskDispatcher extends QueueTaskDispatcher {
     @Override
     public CauseOfBlockage canTake(Node node, Queue.BuildableItem item) {
         logger.entering("ExternalResourceQueueTaskDispatcher", "canTake", new Object[]{node, item});
+		
         // check whether there is already something reserved for use. skip the following step if so.
         // the cantake() method will be called several times, depending on how many available executors left.
         ReservedExternalResourceAction storage = getReservedExternalResourceAction(item);
@@ -72,6 +74,11 @@ public class ExternalResourceQueueTaskDispatcher extends QueueTaskDispatcher {
             logger.exiting("ExternalResourceQueueTaskDispatcher", "canTake", "BecauseAlreadyReserved");
             return new BecauseAlreadyReserved();
         }
+		
+		if (item.task instanceof MatrixProject) {
+			logger.exiting("ExternalResourceQueueTaskDispatcher", "canTake", "OK - Matrix meta-project requires no resources");
+			return null;
+		}
 
         SelectionCriteria selectionCriteria = getSelectionCriteria(item.task);
         if (selectionCriteria == null
